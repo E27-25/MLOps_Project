@@ -1,151 +1,372 @@
 """
-Mini Speech-to-Speech - Mac M4  (v2: SSE streaming TTS)
-=========================================================
-Run:  python3 app.py
-Open: http://localhost:7860
-
+ZoonoticSense — Voice-Driven Zoonotic Disease Surveillance
+===========================================================
 Pipeline:
-  Mic -> Whisper -> LLM (token streaming) -> Kokoro TTS per sentence -> SSE -> Browser
-  First audio chunk plays ~(ASR + LLM-first-sentence + TTS-first-chunk) seconds.
-  Previously it waited for ALL sentences. Now each plays as soon as it is ready.
+  User Voice → Whisper ASR → NER Extraction → MoE Router
+  → Domain RAG Retrieval → Expert LLM Agent → Risk Assessment
+  → Kokoro TTS → Spoken verdict + UI risk card
+
+Run:   python app.py
+Open:  http://localhost:7860
+
+Author: ZoonoticSense Team
 """
 
-import os, re, json, base64, tempfile, subprocess, threading, time, queue
-from flask import Flask, request, jsonify, Response, stream_with_context
+import os, re, json, base64, tempfile, threading, time, queue, logging, subprocess
+from pathlib import Path
+from flask import Flask, request, jsonify, Response, render_template, stream_with_context
 import numpy as np
 
-# ── Device ────────────────────────────────────────────────────────
-import torch
-
-if torch.backends.mps.is_available():
-    DEVICE = 'mps'
-    print("Device: Apple MPS (Metal)")
-elif torch.cuda.is_available():
-    DEVICE = 'cuda'
-    print("Device: CUDA")
-else:
-    DEVICE = 'cpu'
-    print("Device: CPU")
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+log = logging.getLogger(__name__)
 
 os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
-# ── Load models ───────────────────────────────────────────────────
-print("\nLoading models (first run downloads ~2 GB)...")
+# ── Config ─────────────────────────────────────────────────────────────────
+BASE_DIR     = Path(__file__).parent
+KB_DIR       = BASE_DIR / "knowledge_base"
+MODELS_DIR   = BASE_DIR / "models"
+USE_MLX      = os.getenv("USE_MLX", "auto")   # "auto" | "true" | "false"
+LLM_MODEL    = os.getenv("LLM_MODEL", "mlx-community/Qwen3-4B-4bit")
+WHISPER_SIZE = os.getenv("WHISPER_SIZE", "base")   # base | small | medium
+PORT         = int(os.getenv("PORT", 7860))
+DEBUG        = os.getenv("DEBUG", "false").lower() == "true"
 
-print("  [1/3] Whisper-base...")
-import whisper
-asr_model = whisper.load_model('base', device='cpu')
-print("        done")
+# ── Device detection ────────────────────────────────────────────────────────
+import platform
+IS_MAC = platform.system() == "Darwin"
 
-print("  [2/3] Qwen2.5-1.5B-Instruct (with TextIteratorStreamer)...")
-from transformers import AutoTokenizer, AutoModelForCausalLM, TextIteratorStreamer
+if USE_MLX == "auto":
+    USE_MLX = IS_MAC
+elif USE_MLX == "true":
+    USE_MLX = True
+else:
+    USE_MLX = False
 
-LLM_MODEL = 'Qwen/Qwen2.5-1.5B-Instruct'
-llm_tok = AutoTokenizer.from_pretrained(LLM_MODEL)
-llm = AutoModelForCausalLM.from_pretrained(
-    LLM_MODEL,
-    torch_dtype=torch.float16,
-    device_map='auto',
-)
-llm.eval()
-print("        done")
+log.info(f"Platform: {platform.system()} | MLX: {USE_MLX} | LLM: {LLM_MODEL}")
 
-print("  [3/3] Kokoro TTS...")
+# ═══════════════════════════════════════════════════════════════════════════
+#  MODEL LOADING
+# ═══════════════════════════════════════════════════════════════════════════
+
+print("\n" + "="*60)
+print("  ZoonoticSense — Loading Models")
+print("="*60)
+
+# ── 1. ASR (Whisper) ────────────────────────────────────────────────────────
+print(f"\n[1/5] Whisper-{WHISPER_SIZE} (ASR)...")
+if USE_MLX:
+    import mlx_whisper
+    asr_model = None   # mlx_whisper uses functional API
+    ASR_BACKEND = "mlx"
+else:
+    import whisper
+    asr_model = whisper.load_model(WHISPER_SIZE, device='cpu')
+    ASR_BACKEND = "openai-whisper"
+print(f"      ✓ ASR ready [{ASR_BACKEND}]")
+
+# ── 2. Sentence Embedder (Router + RAG) ─────────────────────────────────────
+print("\n[2/5] Sentence embedder (all-MiniLM-L6-v2)...")
+from sentence_transformers import SentenceTransformer
+embedder = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+print("      ✓ Embedder ready")
+
+# ── 3. Router (MLP classifier) ──────────────────────────────────────────────
+print("\n[3/5] MoE Router (NN classifier)...")
+from models.router import ZoonoticRouter
+router = ZoonoticRouter(embedder=embedder, model_dir=MODELS_DIR)
+print(f"      ✓ Router ready | {router.n_domains} domains | backend: {router.backend}")
+
+# ── 4. RAG (FAISS knowledge bases) ─────────────────────────────────────────
+print("\n[4/5] RAG knowledge bases (FAISS)...")
+from utils.rag import DomainRAG
+rag = DomainRAG(kb_dir=KB_DIR, embedder=embedder)
+print(f"      ✓ RAG ready | {rag.n_indexes} domain indexes loaded")
+
+# ── 5. LLM ──────────────────────────────────────────────────────────────────
+print(f"\n[5/5] LLM ({LLM_MODEL})...")
+if USE_MLX:
+    from mlx_lm import load as mlx_load, stream_generate
+    llm, llm_tok = mlx_load(LLM_MODEL)
+    LLM_BACKEND = "mlx-lm"
+else:
+    from transformers import AutoTokenizer, AutoModelForCausalLM, TextIteratorStreamer
+    import torch
+    DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+    _fallback = "Qwen/Qwen2.5-1.5B-Instruct"
+    log.info(f"Non-MLX: loading {_fallback} on {DEVICE}")
+    llm_tok = AutoTokenizer.from_pretrained(_fallback)
+    llm = AutoModelForCausalLM.from_pretrained(
+        _fallback,
+        torch_dtype=torch.float16 if DEVICE != 'cpu' else torch.float32,
+        device_map='auto',
+    )
+    llm.eval()
+    LLM_BACKEND = "transformers"
+print(f"      ✓ LLM ready [{LLM_BACKEND}]")
+
+# ── 6. TTS (Kokoro) ─────────────────────────────────────────────────────────
+print("\n[6/?] Kokoro TTS...")
 from kokoro import KPipeline
 import soundfile as sf
 tts_pipe = KPipeline(lang_code='a')
-print("        done\n")
-print("All models loaded!\n")
+print("      ✓ TTS ready")
 
-# ── Personas ──────────────────────────────────────────────────────
-_SPOKEN_RULE = (
-    ' This response will be read aloud by text-to-speech, so follow these rules strictly: '
-    'No markdown whatsoever. No asterisks, backticks, hash signs, bullet points, '
-    'numbered lists, or code blocks. No URLs. Speak naturally as if talking. '
-    'Stop after a maximum of 4 sentences no matter what.'
-)
+print("\n" + "="*60)
+print("  All systems nominal. Starting server...")
+print("="*60 + "\n")
 
-PERSONAS = {
-    'wildlife_expert': {
-        'name':   'Dr. Maya Chen',
-        'system': ('You are Dr. Maya Chen, a world-renowned wildlife biologist. '
-                   'Answer with calm authority and scientific passion.' + _SPOKEN_RULE),
-        'voice':  'af_heart',
-    },
-    'friendly_teacher': {
-        'name':   'Professor Sam',
-        'system': ('You are Professor Sam, a warm teacher who explains things with one vivid analogy. '
-                   'Give the analogy and then explain it conversationally.' + _SPOKEN_RULE),
-        'voice':  'am_michael',
-    },
-    'casual_chat': {
-        'name':   'Alex',
-        'system': ('You are Alex, a warm and friendly conversationalist. '
-                   'Be natural and engaging. Maximum 2 sentences.' + _SPOKEN_RULE),
-        'voice':  'af_bella',
-    },
-    'astronaut': {
-        'name':   'Captain Alex',
-        'system': ('You are Captain Alex, an astronaut on Mars with a reactor meltdown. '
-                   'Calm but urgent. Write all numbers and abbreviations as full words. '
-                   'Maximum 3 short sentences.' + _SPOKEN_RULE),
-        'voice':  'am_adam',
-    },
+# ═══════════════════════════════════════════════════════════════════════════
+#  NER / EXTRACTION  (structured epi fields from raw speech)
+# ═══════════════════════════════════════════════════════════════════════════
+
+EXTRACT_PROMPT = """You are an epidemiological field data extractor.
+Extract structured information from the report below.
+Return ONLY a JSON object with these exact keys (use null if not mentioned):
+
+{{
+  "species": ["list of animal species mentioned"],
+  "symptoms": ["list of symptoms or behaviors observed"],
+  "mortality_count": <integer or null>,
+  "affected_count": <integer or null>,
+  "location": "<location string or null>",
+  "timeframe": "<how long ago / duration or null>",
+  "reporter_role": "<farmer | ranger | vet | researcher | public | unknown>",
+  "raw_summary": "<one sentence summary of the report>"
+}}
+
+Report: {report}
+
+JSON:"""
+
+
+def extract_epi_fields(text: str) -> dict:
+    """Extract structured epidemiological fields from raw speech transcript."""
+    prompt = EXTRACT_PROMPT.format(report=text)
+
+    if USE_MLX:
+        messages = [{"role": "user", "content": prompt}]
+        formatted = llm_tok.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True,
+            enable_thinking=False,   # Qwen3: disable chain-of-thought
+        )
+        full_out = ""
+        for tok in stream_generate(llm, llm_tok, formatted, max_tokens=512):
+            full_out += tok.text
+    else:
+        inputs = llm_tok(prompt, return_tensors='pt').to(DEVICE)
+        with torch.no_grad():
+            out = llm.generate(**inputs, max_new_tokens=512, do_sample=False)
+        full_out = llm_tok.decode(out[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True)
+
+    # Strip any <think>...</think> blocks (Qwen3 chain-of-thought)
+    full_out = re.sub(r'<think>.*?</think>', '', full_out, flags=re.DOTALL).strip()
+
+    # Parse JSON from output
+    try:
+        json_match = re.search(r'\{.*\}', full_out, re.DOTALL)
+        if json_match:
+            return json.loads(json_match.group())
+    except Exception:
+        pass
+
+    # Fallback: minimal structure
+    return {
+        "species": [], "symptoms": [], "mortality_count": None,
+        "affected_count": None, "location": None, "timeframe": None,
+        "reporter_role": "unknown", "raw_summary": text[:200]
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  EXPERT AGENT  (LLM with RAG context + structured output)
+# ═══════════════════════════════════════════════════════════════════════════
+
+DOMAIN_EXPERTS = {
+    "avian_flu":     {"name": "Avian Influenza Expert",    "voice": "af_heart"},
+    "rabies":        {"name": "Rabies Surveillance Agent", "voice": "am_michael"},
+    "fmd":           {"name": "FMD Field Specialist",      "voice": "am_adam"},
+    "nipah_hendra":  {"name": "Nipah/Hendra Analyst",      "voice": "af_bella"},
+    "leptospirosis": {"name": "Leptospirosis Advisor",     "voice": "am_michael"},
+    "general":       {"name": "General Zoonotic Advisor",  "voice": "af_heart"},
 }
 
-state = {
-    'persona':       'wildlife_expert',
-    'history':       [],
-    'pipeline_lock': threading.Lock(),
-}
+EXPERT_SYSTEM = """You are {expert_name}, a specialist in zoonotic disease surveillance.
+You advise farmers, rangers, and field workers in plain spoken language — like a calm expert on the phone.
 
-# ── TTS sanitizer ─────────────────────────────────────────────────
+CONTEXT FROM VETERINARY KNOWLEDGE BASE:
+{rag_context}
+
+EPIDEMIOLOGICAL REPORT:
+Species: {species}
+Symptoms: {symptoms}
+Mortality: {mortality}
+Location: {location}
+Timeframe: {timeframe}
+
+YOUR RESPONSE — cover ALL of these, in order, using plain natural sentences:
+1. CLINICAL ASSESSMENT: What is likely happening based on species and symptoms. Top 1-2 disease candidates.
+2. RISK LEVEL: State exactly one of: LOW / MEDIUM / HIGH / CRITICAL — and briefly explain why.
+3. IMMEDIATE ACTIONS: What the farmer/ranger should do RIGHT NOW (isolation, PPE, stop movement).
+4. TREATMENT / HANDLING: Any first-response treatment options, medications, or supportive care.
+5. REPORTING: Whether this MUST BE REPORTED TO AUTHORITIES — yes or no, and why.
+6. HUMAN SAFETY: Any risk to people on the farm and what precautions they should take.
+
+Speak naturally. No markdown. No bullet points. Use flowing sentences as if on a phone call.
+Aim for 4-6 sentences total — detailed but clear and not overwhelming."""
+
+CHAT_SYSTEM = """You are a friendly and knowledgeable animal health advisor — think of yourself as a village doctor who cares deeply about both animals and the people who look after them.
+
+Your role is to have a warm, helpful conversation. The person talking to you may be a farmer, a pet owner, or just a curious person.
+
+If they are asking a general question or just chatting, respond in a friendly, natural way — like a doctor you can call on the phone.
+If they mention any symptoms, illness, or concern about animals, gently ask a follow-up question to learn more.
+If this appears to be a genuine disease concern, tell them you can do a proper assessment if they describe the species, symptoms, and how many animals are affected.
+
+Keep responses SHORT — 2 to 3 sentences only. Be warm, not clinical. Speak plainly. No bullet points, no lists."""
+
+
+def _strip_think_stream(token_iter):
+    """Generator: transparently remove <think>...</think> blocks from a token stream."""
+    buf    = ""
+    inside = False
+    for tok in token_iter:
+        buf += tok
+        while True:
+            if inside:
+                end = buf.find("</think>")
+                if end != -1:
+                    buf    = buf[end + 8:]   # discard everything up to and including </think>
+                    inside = False
+                else:
+                    buf = ""                 # still inside think block — discard buffer
+                    break
+            else:
+                start = buf.find("<think>")
+                if start != -1:
+                    yield buf[:start]        # yield text before <think>
+                    buf    = buf[start + 7:]
+                    inside = True
+                else:
+                    # yield safely, keeping last 8 chars as lookahead for split tags
+                    safe = max(0, len(buf) - 8)
+                    if safe:
+                        yield buf[:safe]
+                        buf = buf[safe:]
+                    break
+    if buf and not inside:
+        yield buf
+
+
+def stream_expert_response(domain: str, epi_fields: dict, rag_chunks: list):
+    """Stream tokens from the expert LLM agent (think-blocks stripped)."""
+    is_off_topic = epi_fields.get("_off_topic", False)
+
+    if is_off_topic:
+        # Use friendly chat prompt for general conversation
+        user_msg  = epi_fields.get("raw_summary") or "Hello!"
+        messages  = [
+            {"role": "system", "content": CHAT_SYSTEM},
+            {"role": "user",   "content": user_msg},
+        ]
+    else:
+        expert      = DOMAIN_EXPERTS.get(domain, DOMAIN_EXPERTS["general"])
+        rag_context = "\n\n".join(rag_chunks) if rag_chunks else "No specific records retrieved."
+        system_prompt = EXPERT_SYSTEM.format(
+            expert_name=expert["name"],
+            rag_context=rag_context[:1800],
+            species=", ".join(epi_fields.get("species", []) or ["unknown"]),
+            symptoms=", ".join(epi_fields.get("symptoms", []) or ["unspecified"]),
+            mortality=epi_fields.get("mortality_count") or "unknown",
+            location=epi_fields.get("location") or "unspecified",
+            timeframe=epi_fields.get("timeframe") or "unspecified",
+        )
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user",   "content": "Please assess this zoonotic event."},
+        ]
+    max_tok = 180 if is_off_topic else 650
+
+    if USE_MLX:
+        formatted = llm_tok.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True,
+            enable_thinking=False,   # Qwen3: disable chain-of-thought
+        )
+        raw_tokens = (tok.text for tok in stream_generate(llm, llm_tok, formatted, max_tokens=max_tok))
+        yield from _strip_think_stream(raw_tokens)
+    else:
+        import torch
+        from transformers import TextIteratorStreamer
+        formatted = llm_tok.apply_chat_template(messages, return_tensors='pt').to(DEVICE)
+        streamer  = TextIteratorStreamer(llm_tok, skip_prompt=True, skip_special_tokens=True)
+        thread    = threading.Thread(
+            target=llm.generate,
+            kwargs=dict(inputs=formatted, max_new_tokens=max_tok, streamer=streamer, do_sample=False)
+        )
+        thread.start()
+        yield from _strip_think_stream(streamer)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  RISK PARSER  (extract structured risk card from LLM output)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def parse_risk_level(text: str) -> str:
+    """Extract risk level keyword from LLM response."""
+    text_upper = text.upper()
+    for level in ["CRITICAL", "HIGH", "MEDIUM", "LOW"]:
+        if level in text_upper:
+            return level
+    return "UNKNOWN"
+
+
+def parse_report_flag(text: str) -> bool:
+    """Detect if LLM recommends reporting to authorities."""
+    text_lower = text.lower()
+    report_words = ["report", "notify", "alert authoritie", "contact dld",
+                    "contact the district", "inform the"]
+    return any(w in text_lower for w in report_words)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  TTS UTILITIES
+# ═══════════════════════════════════════════════════════════════════════════
+
+_SENTENCE_BOUNDARY = re.compile(r'[.!?](?:\s|$)')
 _ABBREV = {
-    r'\bPSI\b':  'P.S.I.', r'\bCO2\b':  'C O 2',  r'\bO2\b':   'O 2',
-    r'\bDNA\b':  'D.N.A.', r'\bRNA\b':  'R.N.A.', r'\bAI\b':   'A.I.',
-    r'\bLLM\b':  'L.L.M.', r'\bAPI\b':  'A.P.I.',
-    r'\bNOW\b':  'now',    r'\bSTOP\b': 'stop',   r'\bALERT\b':'alert',
+    r'\bHPAI\b': 'H.P.A.I.', r'\bFMD\b': 'F.M.D.', r'\bASR\b': 'A.S.R.',
+    r'\bTTS\b': 'T.T.S.',   r'\bRAG\b': 'R.A.G.', r'\bLLM\b': 'L.L.M.',
 }
+
 
 def clean_for_tts(text: str) -> str:
-    # Strip markdown the LLM produces despite instructions
-    text = re.sub(r'```[\s\S]*?```', '', text)          # fenced code blocks
-    text = re.sub(r'`[^`]*`', '', text)                    # inline code
-    text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)   # **bold**
-    text = re.sub(r'\*([^*]+)\*',   r'\1', text)        # *italic*
-    text = re.sub(r'#{1,6}\s+', '', text)                 # ## headers
-    text = re.sub(r'^\s*[-*]\s+', '', text, flags=re.MULTILINE)    # bullets
-    text = re.sub(r'^\s*\d+\.\s+', '', text, flags=re.MULTILINE) # 1. lists
-    text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)       # [link](url)
-    # Unicode -> ASCII
+    """Strip markdown and normalise text so Kokoro TTS reads it cleanly."""
+    text = re.sub(r'```[\s\S]*?```', '', text)
+    text = re.sub(r'`[^`]*`', '', text)
+    text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)
+    text = re.sub(r'\*([^*]+)\*',   r'\1', text)
+    text = re.sub(r'#{1,6}\s+', '', text)
+    text = re.sub(r'^\s*[-*]\s+', '', text, flags=re.MULTILINE)
+    text = re.sub(r'^\s*\d+\.\s+', '', text, flags=re.MULTILINE)
+    text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
     text = text.replace('\u2014', ', ').replace('\u2013', ' to ')
-    text = text.replace('\u2026', '...').replace('\u2018', "'").replace('\u2019', "'")
-    text = text.replace('\u201c', '"').replace('\u201d', '"')
-    text = text.replace('\u00b2', ' squared').replace('\u00b0', ' degrees')
-    text = text.replace('\u03c0', 'pi').replace('\u221e', 'infinity')
+    text = text.replace('\u2026', '...')
     for pat, rep in _ABBREV.items():
         text = re.sub(pat, rep, text)
     text = re.sub(r'[^\x00-\x7F]+', ' ', text)
     return re.sub(r'  +', ' ', text).strip()
 
-# ── Sentence accumulator ──────────────────────────────────────────
-# Detects sentence boundaries in a token stream.
-# Yields complete sentence groups (min_words words) as they accumulate.
-_BOUNDARY = re.compile(r'[.!?](?:\s|$)')
-
-def iter_sentence_chunks(token_iter, min_words: int = 8):
+def iter_sentence_chunks(token_iter, min_words: int = 5):
+    """Consumes a token iterator and yields complete sentences at boundaries.
+    Uses word-count (min_words=5 default) — short friendly sentences still get TTS'd.
     """
-    Consumes a token iterator, yields text chunks at sentence boundaries.
-    min_words: don't yield until we have at least this many words buffered.
-    """
-    buf = ''
-    for token in token_iter:
-        buf += token
-        # Check if buf ends with a sentence boundary
-        if _BOUNDARY.search(buf):
-            # Split at last boundary
+    buf = ""
+    for tok in token_iter:
+        buf += tok
+        if _SENTENCE_BOUNDARY.search(buf):
+            # Find the LAST sentence boundary
             m = None
-            for m in _BOUNDARY.finditer(buf):
+            for m in _SENTENCE_BOUNDARY.finditer(buf):
                 pass
             if m and len(buf[:m.end()].split()) >= min_words:
                 chunk = buf[:m.end()].strip()
@@ -154,729 +375,252 @@ def iter_sentence_chunks(token_iter, min_words: int = 8):
     if buf.strip():
         yield buf.strip()
 
-# ── Pipeline ──────────────────────────────────────────────────────
-def transcribe(audio_path: str) -> str:
-    result = asr_model.transcribe(audio_path, language='en', fp16=False)
-    return result['text'].strip()
 
-def synthesize_chunk(text: str) -> bytes:
-    """Synthesize cleaned text chunk -> WAV bytes."""
-    voice = PERSONAS[state['persona']]['voice']
-    text  = clean_for_tts(text)
+def synth_audio_b64(text: str, voice: str = "af_heart") -> str | None:
+    """Synthesize speech and return base64-encoded WAV (all chunks concatenated)."""
+    text = clean_for_tts(text)
     if not text:
-        return b''
-    samples = []
-    for _, _, audio in tts_pipe(text, voice=voice, speed=1.0):
-        samples.append(audio)
-    if not samples:
-        return b''
-    audio_np = np.concatenate(samples)
-    tmp = tempfile.mktemp(suffix='.wav')
-    sf.write(tmp, audio_np, 24000)
-    with open(tmp, 'rb') as f:
-        data = f.read()
-    os.unlink(tmp)
-    return data
-
-def stream_pipeline(audio_path: str):
-    """
-    Generator that yields SSE events:
-
-      data: {"type":"transcript","text":"..."}      <- ASR done
-      data: {"type":"chunk","index":0,"b64":"...","text":"sent1"}  <- each TTS chunk
-      data: {"type":"done","full_text":"...","timing":{...}}       <- all done
-
-    The LLM runs token-by-token via TextIteratorStreamer.
-    Each sentence is sent to TTS as soon as the LLM finishes it.
-    The browser plays chunk 0 while chunk 1 is still being generated.
-    """
-    t0 = time.perf_counter()
-
-    # ── Stage 1: ASR ────────────────────────────────────────────
-    user_text = transcribe(audio_path)
-    t1 = time.perf_counter()
-    yield f'data: {json.dumps({"type":"transcript","text":user_text,"asr":round(t1-t0,2)})}\n\n'
-
-    # ── Stage 2: LLM streaming ──────────────────────────────────
-    persona  = PERSONAS[state['persona']]
-    messages = [{'role': 'system', 'content': persona['system']}]
-    messages += state['history'][-12:]
-    messages.append({'role': 'user', 'content': user_text})
-
-    prompt  = llm_tok.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-    inputs  = llm_tok([prompt], return_tensors='pt').to(DEVICE)
-
-    streamer = TextIteratorStreamer(
-        llm_tok, skip_prompt=True, skip_special_tokens=True
-    )
-    gen_kwargs = dict(
-        **inputs,
-        streamer=streamer,
-        max_new_tokens=220,
-        temperature=0.7,
-        top_p=0.9,
-        do_sample=True,
-        pad_token_id=llm_tok.eos_token_id,
-    )
-
-    # LLM runs in background thread so we can consume tokens here
-    gen_thread = threading.Thread(target=llm.generate, kwargs=gen_kwargs, daemon=True)
-    gen_thread.start()
-
-    t2_start = time.perf_counter()
-
-    # ── Stage 3: TTS per sentence as tokens arrive ───────────────
-    full_text  = ''
-    chunk_idx  = 0
-    tts_times  = []
-    first_tts  = None
-
-    for sentence in iter_sentence_chunks(streamer, min_words=8):
-        full_text += (' ' if full_text else '') + sentence
-        tc0 = time.perf_counter()
-        wav = synthesize_chunk(sentence)
-        tc1 = time.perf_counter()
-        tts_times.append(round(tc1 - tc0, 2))
-
-        if first_tts is None:
-            first_tts = round(tc1 - t0, 2)
-
-        if wav:
-            b64 = base64.b64encode(wav).decode()
-            yield f'data: {json.dumps({"type":"chunk","index":chunk_idx,"b64":b64,"text":sentence})}\n\n'
-            chunk_idx += 1
-
-    gen_thread.join()
-    t3 = time.perf_counter()
-
-    # Update history
-    state['history'].append({'role': 'user',      'content': user_text})
-    state['history'].append({'role': 'assistant', 'content': full_text.strip()})
-    if len(state['history']) > 20:
-        state['history'] = state['history'][-20:]
-
-    timing = {
-        'asr':        round(t1 - t0, 2),
-        'llm':        round(t3 - t2_start, 2),
-        'tts':        round(sum(tts_times), 2),
-        'total':      round(t3 - t0, 2),
-        'first_audio':first_tts,
-        'tts_chunks': tts_times,
-    }
-
-    print(f"\nYou  : {user_text}")
-    print(f"Agent: {full_text.strip()}")
-    print(f"Times: ASR={timing['asr']}s  LLM={timing['llm']}s  "
-          f"TTS={timing['tts']}s  total={timing['total']}s  "
-          f"first_audio={timing['first_audio']}s")
-
-    yield f'data: {json.dumps({"type":"done","full_text":full_text.strip(),"timing":timing})}\n\n'
-
-# ── Flask ─────────────────────────────────────────────────────────
-flask_app = Flask(__name__)
-flask_app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
-
-HTML_PAGE = r"""<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Speech-to-Speech</title>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Courier New', monospace;
-  background: #1e1e2e;
-  color: #cdd6f4;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 30px 16px;
-}
-h1 { color: #cba6f7; margin-bottom: 6px; font-size: 22px; }
-.subtitle { color: #6c7086; font-size: 13px; margin-bottom: 24px; }
-
-.card {
-  background: #313244;
-  border-radius: 12px;
-  padding: 20px;
-  width: 100%;
-  max-width: 560px;
-  margin-bottom: 16px;
-}
-.card-title {
-  color: #89b4fa;
-  font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  font-weight: bold;
-  margin-bottom: 12px;
-}
-
-/* Persona */
-.persona-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.persona-btn {
-  padding: 10px 12px;
-  border: 2px solid #45475a;
-  border-radius: 8px;
-  background: #1e1e2e;
-  color: #cdd6f4;
-  cursor: pointer;
-  font-family: monospace;
-  font-size: 13px;
-  transition: all 0.15s;
-  text-align: left;
-}
-.persona-btn:hover  { border-color: #cba6f7; }
-.persona-btn.active { border-color: #a6e3a1; background: #1a2e22; color: #a6e3a1; }
-.persona-name  { font-weight: bold; display: block; margin-bottom: 2px; }
-.persona-voice { color: #6c7086; font-size: 11px; }
-
-/* Visualizer — FFT bars, centered by symmetric yscale */
-#visualizer {
-  width: 100%;
-  height: 64px;
-  border-radius: 8px;
-  background: #1e1e2e;
-  display: none;
-  margin-bottom: 12px;
-}
-
-/* Buttons row */
-.controls { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
-.btn {
-  padding: 11px 22px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  font-family: monospace;
-  transition: opacity 0.15s, transform 0.1s;
-}
-.btn:active   { transform: scale(0.96); }
-.btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.btn-rec      { background: #a6e3a1; color: #1e1e2e; }
-.btn-stop-rec { background: #f38ba8; color: #1e1e2e; }
-/* Stop AI always visible but dimmed when not playing */
-.btn-stop-ai  { background: #fab387; color: #1e1e2e; opacity: 0.35; pointer-events: none; }
-.btn-stop-ai.active { opacity: 1; pointer-events: auto; }
-
-/* Status */
-#status {
-  text-align: center;
-  color: #89dceb;
-  font-size: 13px;
-  margin-bottom: 8px;
-  min-height: 18px;
-}
-
-/* Timing */
-#timing {
-  display: none;
-  font-size: 11px;
-  text-align: center;
-  margin-bottom: 10px;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-#timing span { padding: 2px 8px; border-radius: 4px; background: #1e1e2e; }
-.t-asr   { color: #89dceb; }
-.t-llm   { color: #cba6f7; }
-.t-tts   { color: #a6e3a1; }
-.t-first { color: #f9e2af; }
-.t-total { color: #f9e2af; font-weight: bold; }
-
-/* Spinner */
-#spinner {
-  display: none;
-  width: 20px; height: 20px;
-  border: 3px solid #45475a;
-  border-top-color: #cba6f7;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  margin: 0 auto 10px;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Log */
-#log {
-  min-height: 80px;
-  max-height: 380px;
-  overflow-y: auto;
-  font-size: 13px;
-  line-height: 1.8;
-}
-.msg { margin-bottom: 8px; }
-.msg-you   { color: #a6e3a1; }
-.msg-agent { color: #89b4fa; }
-.msg-err   { color: #f38ba8; }
-.msg-info  { color: #6c7086; }
-
-.clear-btn {
-  margin-top: 10px;
-  background: none;
-  border: 1px solid #45475a;
-  color: #6c7086;
-  border-radius: 6px;
-  padding: 4px 12px;
-  font-size: 12px;
-  cursor: pointer;
-  font-family: monospace;
-}
-.clear-btn:hover { border-color: #f38ba8; color: #f38ba8; }
-</style>
-</head>
-<body>
-
-<h1>Speech-to-Speech</h1>
-<div class="subtitle">Whisper + Qwen2.5 + Kokoro &mdash; Mac M4</div>
-
-<!-- Persona -->
-<div class="card">
-  <div class="card-title">Persona</div>
-  <div class="persona-grid" id="personaGrid"></div>
-</div>
-
-<!-- Recorder -->
-<div class="card">
-  <div class="card-title">Recorder</div>
-  <canvas id="visualizer"></canvas>
-  <div id="spinner"></div>
-  <div id="status">Click Record and allow microphone access</div>
-  <div id="timing">
-    <span id="t-asr"   class="t-asr"></span>
-    <span id="t-llm"   class="t-llm"></span>
-    <span id="t-tts"   class="t-tts"></span>
-    <span id="t-first" class="t-first"></span>
-    <span id="t-total" class="t-total"></span>
-  </div>
-  <div class="controls">
-    <button class="btn btn-rec"      id="recBtn"     onclick="startRec()">&#9679; Record</button>
-    <button class="btn btn-stop-rec" id="stopRecBtn" onclick="stopRec()" disabled>&#9632; Stop &amp; Send</button>
-    <button class="btn btn-stop-ai"  id="stopAiBtn"  onclick="stopAI()">&#9646;&#9646; Stop AI</button>
-  </div>
-</div>
-
-<!-- Log -->
-<div class="card">
-  <div class="card-title">Conversation</div>
-  <div id="log"><div class="msg msg-info">Waiting for input...</div></div>
-  <button class="clear-btn" onclick="clearLog()">Clear history</button>
-</div>
-
-<script>
-// ── Personas ─────────────────────────────────────────────────────
-const PERSONAS = {
-  wildlife_expert:  { label: 'Wildlife Expert', voice: 'af_heart'   },
-  friendly_teacher: { label: 'Friendly Teacher', voice: 'am_michael' },
-  casual_chat:      { label: 'Casual Chat',      voice: 'af_bella'   },
-  astronaut:        { label: 'Astronaut',         voice: 'am_adam'    },
-};
-let currentPersona = 'wildlife_expert';
-
-const grid = document.getElementById('personaGrid');
-Object.entries(PERSONAS).forEach(([key, p]) => {
-  const btn = document.createElement('button');
-  btn.className = 'persona-btn' + (key === currentPersona ? ' active' : '');
-  btn.innerHTML = `<span class="persona-name">${p.label}</span>
-                   <span class="persona-voice">${p.voice}</span>`;
-  btn.onclick = () => {
-    document.querySelectorAll('.persona-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentPersona = key;
-    fetch('/set_persona', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ persona: key })
-    });
-  };
-  grid.appendChild(btn);
-});
-
-// ── Visualizer — FFT bars symmetric around centre ─────────────────
-// Old FFT bars were better looking. Fix: mirror top+bottom around mid.
-// Each bar drawn UP and DOWN from centre = symmetric, not left-skewed.
-let animCtx   = null;
-let animFrame = null;
-
-function startVisualizer(stream) {
-  const canvas  = document.getElementById('visualizer');
-  const ctx     = canvas.getContext('2d');
-  canvas.style.display = 'block';
-  canvas.width  = canvas.offsetWidth;
-  canvas.height = 64;
-
-  const actx     = new (window.AudioContext || window.webkitAudioContext)();
-  const analyser = actx.createAnalyser();
-  analyser.fftSize               = 256;
-  analyser.smoothingTimeConstant = 0.75;
-  actx.createMediaStreamSource(stream).connect(analyser);
-
-  const bufLen = analyser.frequencyBinCount;  // 128 bins
-  const data   = new Uint8Array(bufLen);
-  const W = canvas.width;
-  const H = canvas.height;
-  const mid = H / 2;
-  animCtx = actx;
-
-  function draw() {
-    animFrame = requestAnimationFrame(draw);
-    analyser.getByteFrequencyData(data);
-
-    ctx.fillStyle = '#1e1e2e';
-    ctx.fillRect(0, 0, W, H);
-
-    // Use only the lower ~60% of bins (human voice range)
-    // This removes the empty high-freq bins that caused left-skew
-    const usedBins = Math.floor(bufLen * 0.6);
-    const barW     = W / usedBins;
-
-    for (let i = 0; i < usedBins; i++) {
-      const norm = data[i] / 255;                  // 0..1
-      const h    = norm * mid * 0.9;               // half-height
-      const x    = i * barW;
-      const hue  = 260 + norm * 60;                // purple -> pink
-
-      ctx.fillStyle = `hsl(${hue},80%,65%)`;
-      // Draw bar both above AND below centre line = symmetric
-      ctx.fillRect(x, mid - h, barW - 1, h);      // top half
-      ctx.fillRect(x, mid,     barW - 1, h);      // bottom half (mirror)
-    }
-  }
-  draw();
-}
-
-function stopVisualizer() {
-  if (animFrame) cancelAnimationFrame(animFrame);
-  if (animCtx)   animCtx.close();
-  animCtx = animFrame = null;
-  document.getElementById('visualizer').style.display = 'none';
-}
-
-// ── Audio chunk queue (SSE streams chunks as they arrive) ─────────
-let audioQueue   = [];
-let isPlayingAI  = false;
-let currentAudio = null;
-let activeSSE    = null;   // EventSource reference so we can abort
-
-function setStopAIActive(on) {
-  const btn = document.getElementById('stopAiBtn');
-  if (on) btn.classList.add('active');
-  else    btn.classList.remove('active');
-}
-
-function stopAI() {
-  // Stop SSE stream
-  if (activeSSE) { activeSSE.close(); activeSSE = null; }
-  // Stop current audio
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.src = '';
-    currentAudio = null;
-  }
-  audioQueue  = [];
-  isPlayingAI = false;
-  setStopAIActive(false);
-  document.getElementById('recBtn').disabled     = false;
-  document.getElementById('stopRecBtn').disabled = true;
-  setStatus('Stopped. Click Record for next turn.');
-}
-
-function enqueueChunk(b64) {
-  audioQueue.push(b64);
-  if (!isPlayingAI) playNext();
-}
-
-function playNext() {
-  if (audioQueue.length === 0) {
-    isPlayingAI = false;
-    setStopAIActive(false);
-    return;
-  }
-  isPlayingAI = true;
-  setStopAIActive(true);
-
-  const audio = new Audio('data:audio/wav;base64,' + audioQueue.shift());
-  currentAudio = audio;
-  audio.onended = () => { currentAudio = null; playNext(); };
-  audio.onerror = () => { currentAudio = null; playNext(); };
-  audio.play().catch(() => { currentAudio = null; playNext(); });
-}
-
-// ── Helpers ───────────────────────────────────────────────────────
-function setStatus(msg) { document.getElementById('status').textContent = msg; }
-
-function showTiming(t) {
-  const el = document.getElementById('timing');
-  el.style.display = 'flex';
-  document.getElementById('t-asr').textContent   = 'ASR '   + t.asr   + 's';
-  document.getElementById('t-llm').textContent   = 'LLM '   + t.llm   + 's';
-  document.getElementById('t-tts').textContent   = 'TTS '   + t.tts   + 's x' + t.tts_chunks.length;
-  document.getElementById('t-first').textContent = 'First '  + t.first_audio + 's';
-  document.getElementById('t-total').textContent = 'Total '  + t.total + 's';
-}
-
-function addMsg(cls, label, text) {
-  const log = document.getElementById('log');
-  if (log.querySelector('.msg-info')) log.innerHTML = '';
-  const div = document.createElement('div');
-  div.className = 'msg msg-' + cls;
-  div.innerHTML = '<b>' + label + ':</b> ' + text;
-  log.appendChild(div);
-  log.scrollTop = log.scrollHeight;
-}
-
-function clearLog() {
-  document.getElementById('log').innerHTML = '<div class="msg msg-info">History cleared</div>';
-  document.getElementById('timing').style.display = 'none';
-  fetch('/clear_history', { method: 'POST' });
-}
-
-// ── Recording ─────────────────────────────────────────────────────
-let mediaRecorder = null;
-let recChunks     = [];
-
-async function startRec() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    recChunks = [];  // always reset before new recording
-    const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-                 ? 'audio/webm;codecs=opus' : 'audio/webm';
-    mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
-    mediaRecorder.ondataavailable = e => { if (e.data.size) recChunks.push(e.data); };
-    mediaRecorder.start(100);
-    startVisualizer(stream);
-    document.getElementById('recBtn').disabled      = true;
-    document.getElementById('stopRecBtn').disabled  = false;
-    document.getElementById('timing').style.display = 'none';
-    setStatus('Recording... speak now');
-  } catch(err) {
-    setStatus('Mic error: ' + err.message);
-  }
-}
-
-function stopRec() {
-  if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
-  document.getElementById('stopRecBtn').disabled = true;
-  stopVisualizer();
-  stopAI();  // stop any previous playback
-  setStatus('Transcribing...');
-  document.getElementById('spinner').style.display = 'block';
-
-  mediaRecorder.onstop = async () => {
-    mediaRecorder.stream.getTracks().forEach(t => t.stop());
-
-    // Guard: make sure we actually recorded something
-    const totalBytes = recChunks.reduce((s, c) => s + c.size, 0);
-    if (totalBytes < 100) {
-      document.getElementById('spinner').style.display = 'none';
-      setStatus('No audio captured. Try again.');
-      document.getElementById('recBtn').disabled     = false;
-      document.getElementById('stopRecBtn').disabled = true;
-      return;
-    }
-
-    // Upload audio
-    const blob = new Blob(recChunks, { type: 'audio/webm' });
-    const form = new FormData();
-    form.append('audio', blob, 'recording.webm');
-
-    let agentName = PERSONAS[currentPersona]
-                    ? (currentPersona === 'wildlife_expert'  ? 'Dr. Maya Chen'   :
-                       currentPersona === 'friendly_teacher' ? 'Professor Sam'   :
-                       currentPersona === 'casual_chat'      ? 'Alex'            :
-                       'Captain Alex')
-                    : 'Agent';
-
-    // POST audio, get session ID back, then open SSE stream
-    let sessionId;
-    try {
-      const r = await fetch('/upload', { method: 'POST', body: form });
-      const d = await r.json();
-      if (d.error) throw new Error(d.error);
-      sessionId = d.session_id;
-    } catch(err) {
-      document.getElementById('spinner').style.display = 'none';
-      addMsg('err', 'Error', err.message);
-      setStatus('Upload error');
-      document.getElementById('recBtn').disabled = false;
-      return;
-    }
-
-    // Open SSE stream
-    const sse = new EventSource('/stream/' + sessionId);
-    activeSSE  = sse;
-    let agentDiv = null;  // live-updated agent message div
-    let fullText = '';
-
-    sse.onmessage = (e) => {
-      const msg = JSON.parse(e.data);
-
-      if (msg.type === 'transcript') {
-        document.getElementById('spinner').style.display = 'none';
-        addMsg('you', 'You', msg.text);
-        setStatus('Generating response...');
-
-      } else if (msg.type === 'chunk') {
-        // First chunk — create agent message div and start playing
-        if (!agentDiv) {
-          if (log.querySelector('.msg-info')) log.innerHTML = '';
-          agentDiv = document.createElement('div');
-          agentDiv.className = 'msg msg-agent';
-          agentDiv.innerHTML = '<b>' + agentName + ':</b> ';
-          document.getElementById('log').appendChild(agentDiv);
-          setStatus('Playing response...');
-        }
-        // Append this sentence to the live text
-        fullText += (fullText ? ' ' : '') + msg.text;
-        agentDiv.innerHTML = '<b>' + agentName + ':</b> ' + fullText;
-        document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight;
-        // Play audio
-        enqueueChunk(msg.b64);
-
-      } else if (msg.type === 'done') {
-        showTiming(msg.timing);
-        if (!isPlayingAI) setStatus('Done! Click Record for next turn.');
-        sse.close();
-        activeSSE = null;
-        document.getElementById('recBtn').disabled     = false;
-        document.getElementById('stopRecBtn').disabled = true;
-      }
-    };
-
-    sse.onerror = (e) => {
-      document.getElementById('spinner').style.display = 'none';
-      sse.close();
-      activeSSE = null;
-      document.getElementById('recBtn').disabled     = false;
-      document.getElementById('stopRecBtn').disabled = true;
-      // Only show error if we never got any text (otherwise it's normal SSE close)
-      if (!fullText) {
-        addMsg('err', 'Error', 'Stream failed. Check terminal for details.');
-        setStatus('Error — try again');
-      } else {
-        setStatus('Done! Click Record for next turn.');
-      }
-    };
-  };
-
-  mediaRecorder.stop();
-}
-</script>
-</body>
-</html>"""
-
-# ── Routes ────────────────────────────────────────────────────────
-import uuid
-
-# Store uploaded audio paths keyed by session_id
-_sessions = {}
-_sessions_lock = threading.Lock()
-
-@flask_app.route('/')
-def index():
-    return Response(HTML_PAGE, mimetype='text/html')
-
-@flask_app.route('/set_persona', methods=['POST'])
-def set_persona():
-    data = request.get_json()
-    key  = data.get('persona', 'wildlife_expert')
-    if key in PERSONAS:
-        state['persona'] = key
-        state['history'] = []
-        print(f"Persona: {PERSONAS[key]['name']}")
-    return jsonify({'ok': True})
-
-@flask_app.route('/clear_history', methods=['POST'])
-def clear_history():
-    state['history'] = []
-    return jsonify({'ok': True})
-
-@flask_app.route('/upload', methods=['POST'])
-def upload():
-    """Receive audio, convert to WAV, store for SSE stream."""
-    if 'audio' not in request.files:
-        return jsonify({'error': 'no audio'}), 400
-
-    # Use unique temp dir per request to avoid filename collisions between sessions
-    tmp_dir = tempfile.mkdtemp()
-    webm = os.path.join(tmp_dir, 'input.webm')
-    wav  = os.path.join(tmp_dir, 'output.wav')
+        return None
     try:
-        data_bytes = request.files['audio'].read()
-        if len(data_bytes) < 100:
-            return jsonify({'error': 'Audio too short or empty. Hold the button while speaking.'})
-        with open(webm, 'wb') as f:
-            f.write(data_bytes)
-        print(f'Received audio: {len(data_bytes)/1024:.1f} KB')
-        r = subprocess.run(
-            ['ffmpeg', '-y', '-i', webm, '-ar', '16000', '-ac', '1', wav],
-            capture_output=True
-        )
-        if r.returncode != 0:
-            # Skip ffmpeg version/config header (first ~8 lines) to show actual error
-            stderr_lines = r.stderr.decode(errors='replace').splitlines()
-            real_err = '\n'.join(l for l in stderr_lines if l and not l.startswith(('ffmpeg version', 'built with', 'configuration', 'lib', '  lib', 'Copyright')))
-            real_err = real_err.strip()[-400:]   # last 400 chars = the actual error
-            print(f'ffmpeg error:\n{real_err}')
-            return jsonify({'error': 'ffmpeg: ' + real_err})
-
-        sid = str(uuid.uuid4())
-        with _sessions_lock:
-            # Store wav path AND tmp_dir — stream route cleans up after use
-            _sessions[sid] = {'wav': wav, 'tmp_dir': tmp_dir}
-        return jsonify({'session_id': sid})
+        samples = []
+        for _, _, audio in tts_pipe(text, voice=voice, speed=1.0):
+            samples.append(audio)
+        if not samples:
+            return None
+        audio_np = np.concatenate(samples)
+        tmp_path = tempfile.mktemp(suffix='.wav')
+        sf.write(tmp_path, audio_np, 24000)
+        with open(tmp_path, 'rb') as f:
+            data = f.read()
+        os.unlink(tmp_path)
+        return base64.b64encode(data).decode()
     except Exception as e:
-        # Only clean up on failure — success path keeps tmp_dir for stream route
-        import shutil
-        if os.path.exists(tmp_dir): shutil.rmtree(tmp_dir, ignore_errors=True)
-        return jsonify({'error': str(e)})
+        log.error(f"TTS error: {e}")
+        return None
 
-@flask_app.route('/stream/<session_id>')
-def stream(session_id):
-    """SSE endpoint — runs full pipeline, streams chunks as they're ready."""
-    with _sessions_lock:
-        session = _sessions.pop(session_id, None)
-    if not session:
-        return Response('data: {"type":"error","msg":"session not found"}\n\n',
-                        mimetype='text/event-stream')
 
-    wav     = session['wav']
-    tmp_dir = session['tmp_dir']
+# ═══════════════════════════════════════════════════════════════════════════
+#  FLASK APP
+# ═══════════════════════════════════════════════════════════════════════════
+
+app = Flask(__name__, template_folder='templates', static_folder='static')
+
+pipeline_lock = threading.Lock()
+session_state = {
+    "history":     [],   # conversation turns
+    "last_report": {},   # last epi report for follow-up context
+}
+
+
+@app.route('/')
+def landing():
+    return render_template('landing.html')
+
+
+@app.route('/app')
+def index():
+    return render_template('index.html',
+                           domains=list(DOMAIN_EXPERTS.keys()),
+                           version="1.0.0")
+
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    """Receive audio, run ASR, return transcript + epi fields."""
+    if 'audio' not in request.files:
+        return jsonify({"error": "No audio file"}), 400
+
+    audio_file = request.files['audio']
+    with tempfile.NamedTemporaryFile(suffix='.webm', delete=False) as tmp:
+        audio_file.save(tmp.name)
+        tmp_path = tmp.name
+
+    try:
+        # Convert to WAV for Whisper
+        wav_path = tmp_path.replace('.webm', '.wav')
+        subprocess.run(
+            ['ffmpeg', '-y', '-i', tmp_path, '-ar', '16000', '-ac', '1', wav_path],
+            capture_output=True, check=True
+        )
+
+        # ASR
+        t0 = time.time()
+        if ASR_BACKEND == "mlx":
+            result = mlx_whisper.transcribe(wav_path, path_or_hf_repo=f"mlx-community/whisper-{WHISPER_SIZE}-mlx")
+        else:
+            result = asr_model.transcribe(wav_path)
+        transcript = result["text"].strip()
+        asr_time   = round(time.time() - t0, 2)
+        log.info(f"ASR ({asr_time}s): {transcript}")
+
+        return jsonify({
+            "transcript": transcript,
+            "asr_time":   asr_time,
+        })
+
+    except subprocess.CalledProcessError as e:
+        return jsonify({"error": f"Audio conversion failed: {e}"}), 500
+    finally:
+        for p in [tmp_path, tmp_path.replace('.webm', '.wav')]:
+            try: os.unlink(p)
+            except: pass
+
+
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    """Full pipeline: transcript → NER → Router → RAG → Expert LLM → TTS stream."""
+    data       = request.get_json()
+    transcript = data.get("transcript", "").strip()
+    if not transcript:
+        return jsonify({"error": "Empty transcript"}), 400
+
+    # Step 1 — NER extraction
+    t0 = time.time()
+    epi_fields = extract_epi_fields(transcript)
+    ner_time   = round(time.time() - t0, 2)
+    log.info(f"NER ({ner_time}s): {epi_fields}")
+
+    # Step 2 — Router classification
+    t1 = time.time()
+    domain, confidence, all_scores = router.classify(transcript, epi_fields)
+    route_time = round(time.time() - t1, 2)
+    log.info(f"Router ({route_time}s): domain={domain} conf={confidence:.2f}")
+
+    # Off-topic guard — two conditions trigger chat mode:
+    # 1) No epi signal at all AND low router confidence
+    # 2) Starts with a clear greeting / general question pattern with no mortality
+    has_species   = bool(epi_fields.get("species"))
+    has_symptoms  = bool(epi_fields.get("symptoms"))
+    has_mortality = bool(epi_fields.get("mortality_count"))
+
+    _CHAT_PAT = re.compile(
+        r"^\s*(hi|hello|hey|good\s+\w+|how\s+(do|to|can|does)|what\s+is|can\s+you|"
+        r"teach\s+me|tell\s+me|explain|thanks|thank\s+you|what\s+should|is\s+it\s+safe)",
+        re.IGNORECASE,
+    )
+    is_chat_query = bool(_CHAT_PAT.match(transcript)) and not has_mortality
+    is_off_topic  = is_chat_query or (not has_species and not has_symptoms and confidence < 0.35)
+
+    if is_off_topic:
+        domain = "general"
+        log.info(f"Off-topic/chat input detected (is_chat={is_chat_query}) — routing to friendly advisor")
+        epi_fields["_off_topic"] = True
+
+    # Step 3 — RAG retrieval
+    t2 = time.time()
+    rag_chunks = rag.retrieve(transcript, domain=domain, top_k=3)
+    rag_time   = round(time.time() - t2, 2)
+    log.info(f"RAG ({rag_time}s): {len(rag_chunks)} chunks from domain={domain}")
+
+    # Update session
+    session_state["last_report"] = {
+        "transcript": transcript,
+        "epi_fields": epi_fields,
+        "domain":     domain,
+    }
+
+    return jsonify({
+        "epi_fields":   epi_fields,
+        "domain":       domain,
+        "confidence":   round(confidence, 3),
+        "all_scores":   {k: round(v, 3) for k, v in all_scores.items()},
+        "rag_chunks":   rag_chunks,
+        "timing": {
+            "ner_s":   ner_time,
+            "route_s": route_time,
+            "rag_s":   rag_time,
+        }
+    })
+
+
+@app.route('/stream', methods=['POST'])
+def stream():
+    """Stream expert LLM response + TTS audio chunks via SSE."""
+    data       = request.get_json()
+    domain     = data.get("domain", "general")
+    epi_fields = data.get("epi_fields", {})
+    rag_chunks = data.get("rag_chunks", [])
+    voice      = DOMAIN_EXPERTS.get(domain, DOMAIN_EXPERTS["general"])["voice"]
 
     def generate():
-        import shutil
-        try:
-            with state['pipeline_lock']:
-                yield from stream_pipeline(wav)
-        except Exception as e:
-            import traceback; traceback.print_exc()
-            yield f'data: {json.dumps({"type":"error","msg":str(e)})}\n\n'
-        finally:
-            # Clean up tmp_dir here — after pipeline is fully done
-            shutil.rmtree(tmp_dir, ignore_errors=True)
+        full_text  = ""
+        audio_sent = 0
+
+        with pipeline_lock:
+            token_gen = stream_expert_response(domain, epi_fields, rag_chunks)
+
+            for sentence in iter_sentence_chunks(token_gen):
+                full_text += " " + sentence
+
+                # Stream text token
+                yield f"data: {json.dumps({'type': 'text', 'chunk': sentence})}\n\n"
+
+                # Synthesize + stream audio
+                audio_b64 = synth_audio_b64(sentence, voice=voice)
+                if audio_b64:
+                    audio_sent += 1
+                    yield f"data: {json.dumps({'type': 'audio', 'data': audio_b64, 'idx': audio_sent, 'sentence': sentence})}\n\n"
+
+        # After full generation — parse risk card
+        risk_level   = parse_risk_level(full_text)
+        report_flag  = parse_report_flag(full_text)
+        expert_name  = DOMAIN_EXPERTS.get(domain, DOMAIN_EXPERTS["general"])["name"]
+
+        risk_card = {
+            "risk_level":    risk_level,
+            "report_flag":   report_flag,
+            "domain":        domain,
+            "expert_name":   expert_name,
+            "full_response": full_text.strip(),
+        }
+
+        # Append to session history
+        session_state["history"].append({
+            "role": "assistant",
+            "domain": domain,
+            "risk_level": risk_level,
+            "text": full_text.strip(),
+        })
+
+        yield f"data: {json.dumps({'type': 'risk_card', 'card': risk_card})}\n\n"
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
     return Response(
         stream_with_context(generate()),
         mimetype='text/event-stream',
         headers={
-            'Cache-Control': 'no-cache',
+            'Cache-Control':  'no-cache',
             'X-Accel-Buffering': 'no',
         }
     )
 
-# ── Main ──────────────────────────────────────────────────────────
+
+@app.route('/history', methods=['GET'])
+def history():
+    return jsonify(session_state["history"])
+
+
+@app.route('/reset', methods=['POST'])
+def reset():
+    session_state["history"].clear()
+    session_state["last_report"] = {}
+    return jsonify({"ok": True})
+
+
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({
+        "status":        "ok",
+        "llm_backend":   LLM_BACKEND,
+        "asr_backend":   ASR_BACKEND,
+        "router_backend": router.backend,
+        "rag_indexes":   rag.n_indexes,
+        "domains":       list(DOMAIN_EXPERTS.keys()),
+    })
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+
 if __name__ == '__main__':
-    PORT = 7860
-    print(f"Starting at http://localhost:{PORT}")
-    print("Press Ctrl+C to quit\n")
-
-    def open_browser():
-        time.sleep(1.5)
-        subprocess.run(['open', f'http://localhost:{PORT}'])
-    threading.Thread(target=open_browser, daemon=True).start()
-
-    flask_app.run(host='0.0.0.0', port=PORT,
-                  debug=False, use_reloader=False, threaded=True)
+    log.info(f"Starting ZoonoticSense on http://localhost:{PORT}")
+    app.run(host='0.0.0.0', port=PORT, debug=DEBUG, threaded=True)

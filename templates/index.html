@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZoonoticSense — Zoonotic Disease Surveillance</title>
+  <meta name="description"
+    content="AI-powered voice zoonotic disease surveillance system for field workers and farmers">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+
+  <!-- ── STICKY HEADER ── -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🦠</span>
+        <div>
+          <div class="logo-name">ZoonoticSense</div>
+          <div class="logo-sub">Voice Zoonotic Surveillance · v2.0</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="sys-status">
+          <div class="status-dot" id="statusDot"></div>
+          <span class="status-text" id="statusText">Ready</span>
+        </div>
+        <button class="btn btn-ghost" id="newSessionBtn" onclick="resetSession()">↺ New Session</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── HERO: INPUT ── -->
+  <section class="hero">
+    <div class="hero-inner">
+
+      <!-- Mic + waveform -->
+      <div class="hero-mic" id="micArea">
+        <button class="mic-btn" id="micBtn" onclick="toggleRecording()">
+          <span class="mic-icon" id="micIcon">🎤</span>
+        </button>
+        <canvas class="waveform-canvas" id="waveCanvas" width="220" height="48"></canvas>
+        <span class="mic-hint" id="micLabel">Tap to Record</span>
+      </div>
+
+      <!-- Text input alternative -->
+      <div class="hero-text">
+        <textarea id="textInput" rows="3"
+          placeholder="Or type your field report here…&#10;Example: Three chickens died overnight, cyanotic combs, one found convulsing near the pond."></textarea>
+        <button class="btn btn-primary" id="analyzeBtn" onclick="analyzeText()">
+          Analyze Report →
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── PIPELINE BAR ── -->
+  <section class="pipeline-section hidden" id="pipelineSection">
+    <div class="content-wrap">
+      <button class="collapse-toggle" onclick="toggleSection('pipelineBody', this)" aria-expanded="true">
+        <span class="toggle-label">⚡ Pipeline</span>
+        <span class="toggle-chevron">▾</span>
+      </button>
+      <div class="collapse-body" id="pipelineBody">
+        <div class="pipeline-steps">
+
+          <div class="pipe-step" id="step-asr">
+            <div class="pipe-dot"></div>
+            <div class="pipe-content">
+              <span class="pipe-name">ASR</span>
+              <span class="pipe-detail" id="step-asr-detail">waiting</span>
+            </div>
+            <span class="pipe-time" id="step-asr-time"></span>
+          </div>
+          <div class="pipe-line"></div>
+
+          <div class="pipe-step" id="step-ner">
+            <div class="pipe-dot"></div>
+            <div class="pipe-content">
+              <span class="pipe-name">NER</span>
+              <span class="pipe-detail" id="step-ner-detail">waiting</span>
+            </div>
+            <span class="pipe-time" id="step-ner-time"></span>
+          </div>
+          <div class="pipe-line"></div>
+
+          <div class="pipe-step" id="step-router">
+            <div class="pipe-dot"></div>
+            <div class="pipe-content">
+              <span class="pipe-name">Router</span>
+              <span class="pipe-detail" id="step-router-detail">waiting</span>
+            </div>
+            <span class="pipe-time" id="step-router-time"></span>
+          </div>
+          <div class="pipe-line"></div>
+
+          <div class="pipe-step" id="step-rag">
+            <div class="pipe-dot"></div>
+            <div class="pipe-content">
+              <span class="pipe-name">RAG</span>
+              <span class="pipe-detail" id="step-rag-detail">waiting</span>
+            </div>
+            <span class="pipe-time" id="step-rag-time"></span>
+          </div>
+          <div class="pipe-line"></div>
+
+          <div class="pipe-step" id="step-llm">
+            <div class="pipe-dot"></div>
+            <div class="pipe-content">
+              <span class="pipe-name">Expert</span>
+              <span class="pipe-detail" id="step-llm-detail">waiting</span>
+            </div>
+            <span class="pipe-time" id="step-llm-time"></span>
+          </div>
+          <div class="pipe-line"></div>
+
+          <div class="pipe-step" id="step-tts">
+            <div class="pipe-dot"></div>
+            <div class="pipe-content">
+              <span class="pipe-name">TTS</span>
+              <span class="pipe-detail" id="step-tts-detail">waiting</span>
+            </div>
+            <span class="pipe-time" id="step-tts-time"></span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ASSESSMENT CARD ── -->
+  <section class="assessment-section hidden" id="assessmentSection">
+    <div class="content-wrap">
+
+      <div class="assessment-card" id="riskCard">
+        <!-- Header row -->
+        <div class="assessment-header">
+          <div class="assessment-meta">
+            <span class="assessment-expert" id="riskExpert">Expert Agent</span>
+            <span class="domain-tag" id="riskDomain">domain</span>
+            <span class="chat-tag hidden" id="chatTag">💬 chat mode</span>
+          </div>
+          <div class="risk-badge UNKNOWN" id="riskBadge">—</div>
+        </div>
+
+        <!-- Assessment text -->
+        <div class="assessment-body">
+          <div class="section-label">Assessment</div>
+          <p class="assessment-text" id="riskText"></p>
+        </div>
+
+        <!-- Flags -->
+        <div class="risk-flags hidden" id="riskFlags"></div>
+
+        <!-- Audio bar + TTS script -->
+        <div class="audio-bar" id="audioPlayer">
+          <span class="audio-icon">🔊</span>
+          <span class="audio-label" id="audioLabel">Synthesizing speech…</span>
+          <div class="audio-queue" id="audioQueue"></div>
+          <button class="stop-tts-btn" id="stopTtsBtn" onclick="stopTTS()" title="Stop speech">■ Stop</button>
+        </div>
+
+        <!-- TTS Script collapsible -->
+        <div class="tts-script-wrap">
+          <button class="collapse-toggle tts-toggle" onclick="toggleSection('ttsScriptBody', this)"
+            aria-expanded="false" data-collapsed>
+            <span class="toggle-label">🗣 TTS Script</span>
+            <span class="toggle-chevron">▸</span>
+          </button>
+          <div class="collapse-body collapsed" id="ttsScriptBody">
+            <ol class="tts-script-list" id="ttsScriptList"></ol>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── DETAIL PANELS (collapsible) ── -->
+  <section class="details-section hidden" id="detailsSection">
+    <div class="content-wrap details-grid">
+
+      <!-- EPI Fields -->
+      <div class="detail-panel hidden" id="epiCard">
+        <button class="collapse-toggle" onclick="toggleSection('epiBody', this)" aria-expanded="true">
+          <span class="toggle-label">🧬 Extracted Fields</span>
+          <span class="panel-summary" id="epiSummary"></span>
+          <span class="toggle-chevron">▾</span>
+        </button>
+        <div class="collapse-body" id="epiBody">
+          <div class="epi-grid" id="epiGrid"></div>
+        </div>
+      </div>
+
+      <!-- Router confidence -->
+      <div class="detail-panel hidden" id="routerCard">
+        <button class="collapse-toggle" onclick="toggleSection('routerBody', this)" aria-expanded="true">
+          <span class="toggle-label">🧭 Domain Confidence</span>
+          <span class="panel-summary" id="routerSummary"></span>
+          <span class="toggle-chevron">▾</span>
+        </button>
+        <div class="collapse-body" id="routerBody">
+          <div class="router-bars" id="routerBars"></div>
+        </div>
+      </div>
+
+      <!-- RAG chunks -->
+      <div class="detail-panel rag-panel hidden" id="ragCard">
+        <button class="collapse-toggle" onclick="toggleSection('ragBody', this)" aria-expanded="false" data-collapsed>
+          <span class="toggle-label">📚 Knowledge Sources</span>
+          <span class="toggle-chevron">▸</span>
+        </button>
+        <div class="collapse-body collapsed" id="ragBody">
+          <div class="rag-chunks" id="ragChunks"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── SESSION HISTORY ── -->
+  <section class="history-section">
+    <div class="content-wrap">
+      <button class="collapse-toggle" onclick="toggleSection('historyBody', this)" aria-expanded="false" data-collapsed>
+        <span class="toggle-label">🕐 Session History</span>
+        <span class="toggle-chevron">▸</span>
+      </button>
+      <div class="collapse-body collapsed" id="historyBody">
+        <div class="history-list" id="historyList">
+          <div class="history-empty">No reports yet. Record or type a field report above.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <div class="content-wrap footer-inner">
+      <span class="footer-copy">ZoonoticSense · AI-powered field surveillance</span>
+      <div class="footer-links">
+        <span>DLD Emergency: 02-653-4444</span>
+        <span>·</span>
+        <span>DDC Hotline: 1422</span>
+      </div>
+    </div>
+  </footer>
+
+  <div id="audioPool" style="display:none"></div>
+  <script src="/static/js/app.js"></script>
+</body>
+
+</html>

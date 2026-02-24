@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZoonoticSense — AI Zoonotic Surveillance</title>
+    <meta name="description"
+        content="AI-powered voice zoonotic disease surveillance for farmers and field workers. On-device, real-time, voice-first.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,300&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ──────────── TOKENS ──────────── */
+        :root {
+            --bg: #06060f;
+            --bg2: #0d0d1a;
+            --surface: #13132a;
+            --border: rgba(255, 255, 255, 0.06);
+            --text: #e8e8f0;
+            --sub: #8888aa;
+            --dim: #44445a;
+            --mauve: #cba6f7;
+            --blue: #89b4fa;
+            --sapph: #74c7ec;
+            --green: #a6e3a1;
+            --peach: #fab387;
+            --red: #f38ba8;
+            --yellow: #f9e2af;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Inter', sans-serif;
+            --ease: cubic-bezier(.22, 1, .36, 1);
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ──────────── MOUSE-TRACK AURORA ──────────── */
+        #aurora {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0;
+            animation: orbFade 1.2s var(--ease) forwards;
+            transition: transform 1.4s var(--ease);
+            will-change: transform;
+        }
+
+        .orb-a {
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(203, 166, 247, .22) 0%, transparent 70%);
+            top: -180px;
+            left: -180px;
+        }
+
+        .orb-b {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(116, 199, 236, .18) 0%, transparent 70%);
+            bottom: 0;
+            right: -100px;
+        }
+
+        .orb-c {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(166, 227, 161, .12) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes orbFade {
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* ──────────── NOISE GRAIN ──────────── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.022;
+        }
+
+        /* ──────────── LAYOUT ──────────── */
+        .page {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ──────────── NAV ──────────── */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 40px;
+            border-bottom: 1px solid transparent;
+            backdrop-filter: blur(20px);
+            transition: border-color 0.3s, background 0.3s;
+        }
+
+        nav.scrolled {
+            border-bottom-color: var(--border);
+            background: rgba(6, 6, 15, 0.85);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .nav-logo-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--mauve), var(--blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .nav-logo-name {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-pill {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            color: var(--green);
+            background: rgba(166, 227, 161, 0.08);
+            border: 1px solid rgba(166, 227, 161, 0.18);
+            border-radius: 20px;
+            padding: 4px 12px;
+            animation: pulse-green 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-green {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .nav-link {
+            font-size: 13px;
+            color: var(--sub);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--text);
+        }
+
+        /* ──────────── HERO ──────────── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 120px 24px 80px;
+            gap: 0;
+        }
+
+        /* Animated tag */
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--sapph);
+            background: rgba(116, 199, 236, 0.06);
+            border: 1px solid rgba(116, 199, 236, 0.15);
+            border-radius: 100px;
+            padding: 6px 16px;
+            margin-bottom: 32px;
+            opacity: 0;
+            transform: translateY(16px);
+            animation: slideUp 0.7s var(--ease) 0.1s forwards;
+        }
+
+        .hero-tag-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--sapph);
+            animation: pulse-blue 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-blue {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.5);
+                opacity: 0.5;
+            }
+        }
+
+        /* Title */
+        .hero-title {
+            font-size: clamp(42px, 7.5vw, 96px);
+            font-weight: 800;
+            letter-spacing: -3px;
+            line-height: 1.0;
+            margin-bottom: 28px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.8s var(--ease) 0.25s forwards;
+        }
+
+        .hero-title .line2 {
+            background: linear-gradient(135deg, var(--mauve) 0%, var(--blue) 40%, var(--sapph) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Subtitle */
+        .hero-sub {
+            font-size: 17px;
+            line-height: 1.7;
+            color: var(--sub);
+            max-width: 520px;
+            font-weight: 400;
+            margin-bottom: 44px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.8s var(--ease) 0.4s forwards;
+        }
+
+        /* CTA */
+        .cta-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.8s var(--ease) 0.55s forwards;
+        }
+
+        .btn-primary {
+            position: relative;
+            overflow: hidden;
+            font-family: var(--sans);
+            font-size: 14px;
+            font-weight: 600;
+            padding: 14px 32px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(135deg, rgba(203, 166, 247, 1), rgba(137, 180, 250, 1));
+            color: #0d0d1a;
+            cursor: pointer;
+            letter-spacing: -0.3px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 0 0 0 rgba(203, 166, 247, 0.4);
+        }
+
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 40px rgba(203, 166, 247, 0.35);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0) scale(0.99);
+        }
+
+        .btn-outline {
+            font-family: var(--sans);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 13px 28px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--sub);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+            backdrop-filter: blur(8px);
+        }
+
+        .btn-outline:hover {
+            border-color: rgba(203, 166, 247, 0.3);
+            color: var(--text);
+            background: rgba(203, 166, 247, 0.04);
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ──────────── STATS STRIP ──────────── */
+        .stats-strip {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            flex-wrap: wrap;
+            max-width: 700px;
+            margin: 72px auto 0;
+            padding: 0 24px;
+            opacity: 0;
+            animation: slideUp 0.8s var(--ease) 0.7s forwards;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px 36px;
+        }
+
+        .stat-divider {
+            width: 1px;
+            height: 40px;
+            background: linear-gradient(to bottom, transparent, var(--border), transparent);
+        }
+
+        .stat-num {
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            background: linear-gradient(135deg, var(--mauve), var(--peach));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+        }
+
+        .stat-lbl {
+            font-size: 11px;
+            color: var(--dim);
+            margin-top: 3px;
+            letter-spacing: 0.5px;
+        }
+
+        /* ──────────── SECTION WRAPPER ──────────── */
+        .section {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 100px 32px;
+        }
+
+        .section-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: var(--mauve);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: clamp(28px, 4vw, 48px);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            line-height: 1.15;
+            margin-bottom: 16px;
+        }
+
+        .section-sub {
+            font-size: 15px;
+            color: var(--sub);
+            line-height: 1.7;
+            max-width: 480px;
+        }
+
+        /* ──────────── PIPELINE VISUALISER ──────────── */
+        .pipeline-section {
+            padding: 80px 32px 100px;
+        }
+
+        .pipeline-wrap {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .pipeline-header {
+            margin-bottom: 56px;
+        }
+
+        .pipeline-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            position: relative;
+        }
+
+        .pl-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            cursor: default;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .pl-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            transition: transform 0.25s var(--ease), box-shadow 0.25s, border-color 0.25s;
+            position: relative;
+        }
+
+        .pl-step:hover .pl-circle {
+            transform: translateY(-5px) scale(1.08);
+        }
+
+        .pl-step[data-color="sapph"]:hover .pl-circle {
+            border-color: var(--sapph);
+            box-shadow: 0 12px 40px rgba(116, 199, 236, .25);
+        }
+
+        .pl-step[data-color="mauve"]:hover .pl-circle {
+            border-color: var(--mauve);
+            box-shadow: 0 12px 40px rgba(203, 166, 247, .25);
+        }
+
+        .pl-step[data-color="yellow"]:hover .pl-circle {
+            border-color: var(--yellow);
+            box-shadow: 0 12px 40px rgba(249, 226, 175, .2);
+        }
+
+        .pl-step[data-color="peach"]:hover .pl-circle {
+            border-color: var(--peach);
+            box-shadow: 0 12px 40px rgba(250, 179, 135, .2);
+        }
+
+        .pl-step[data-color="green"]:hover .pl-circle {
+            border-color: var(--green);
+            box-shadow: 0 12px 40px rgba(166, 227, 161, .2);
+        }
+
+        .pl-name {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--dim);
+            text-transform: uppercase;
+        }
+
+        .pl-desc {
+            font-size: 11px;
+            color: var(--sub);
+            text-align: center;
+            max-width: 80px;
+            line-height: 1.5;
+            margin-top: 2px;
+        }
+
+        .pl-connector {
+            flex: 1;
+            min-width: 16px;
+            max-width: 72px;
+            display: flex;
+            align-items: center;
+            padding: 0 2px;
+        }
+
+        .pl-conn-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border) 0%, rgba(203, 166, 247, 0.25) 50%, var(--border) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pl-conn-pulse {
+            position: absolute;
+            top: 0;
+            left: -50%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(203, 166, 247, 0.6), transparent);
+            animation: connPulse 2.5s ease-in-out infinite;
+        }
+
+        .pl-conn-pulse:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        .pl-conn-pulse:nth-child(3) {
+            animation-delay: 1.0s;
+        }
+
+        .pl-conn-pulse:nth-child(4) {
+            animation-delay: 1.5s;
+        }
+
+        @keyframes connPulse {
+            0% {
+                left: -60%;
+            }
+
+            100% {
+                left: 110%;
+            }
+        }
+
+        /* ──────────── FEATURE GRID (3D tilt cards) ──────────── */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .feat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            transition: border-color 0.2s;
+            transform-style: preserve-3d;
+            will-change: transform;
+            cursor: default;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 50%),
+                    rgba(203, 166, 247, 0.06), transparent 50%);
+            transition: opacity 0.3s;
+            opacity: 0;
+        }
+
+        .feat-card:hover::before {
+            opacity: 1;
+        }
+
+        .feat-card:hover {
+            border-color: rgba(203, 166, 247, 0.2);
+        }
+
+        .feat-icon-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 18px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+        }
+
+        .feat-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .feat-desc {
+            font-size: 12px;
+            color: var(--sub);
+            line-height: 1.7;
+        }
+
+        .feat-badge {
+            display: inline-block;
+            margin-top: 16px;
+            font-family: var(--mono);
+            font-size: 8px;
+            letter-spacing: 1.5px;
+            color: var(--mauve);
+            background: rgba(203, 166, 247, 0.07);
+            border: 1px solid rgba(203, 166, 247, 0.14);
+            border-radius: 4px;
+            padding: 3px 8px;
+        }
+
+        /* reveal on scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* stagger */
+        .feat-card:nth-child(1) {
+            transition-delay: 0.05s;
+        }
+
+        .feat-card:nth-child(2) {
+            transition-delay: 0.12s;
+        }
+
+        .feat-card:nth-child(3) {
+            transition-delay: 0.19s;
+        }
+
+        .feat-card:nth-child(4) {
+            transition-delay: 0.26s;
+        }
+
+        .feat-card:nth-child(5) {
+            transition-delay: 0.33s;
+        }
+
+        .feat-card:nth-child(6) {
+            transition-delay: 0.40s;
+        }
+
+        /* ──────────── CTA BANNER ──────────── */
+        .cta-banner {
+            text-align: center;
+            padding: 100px 32px;
+            position: relative;
+        }
+
+        .cta-banner-inner {
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .cta-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            height: 200px;
+            background: radial-gradient(ellipse, rgba(203, 166, 247, 0.12) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .cta-title {
+            font-size: clamp(28px, 5vw, 52px);
+            font-weight: 800;
+            letter-spacing: -2px;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+
+        .cta-sub {
+            font-size: 15px;
+            color: var(--sub);
+            line-height: 1.7;
+            margin-bottom: 36px;
+        }
+
+        /* ──────────── FOOTER ──────────── */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 28px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: var(--mono);
+            font-size: 9px;
+            color: var(--dim);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        footer a {
+            color: var(--dim);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--sub);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ── AURORA BG ── -->
+    <div id="aurora">
+        <div class="orb orb-a"></div>
+        <div class="orb orb-b"></div>
+        <div class="orb orb-c"></div>
+    </div>
+
+    <div class="page">
+
+        <!-- ── NAV ── -->
+        <nav id="nav">
+            <a href="/" class="nav-logo">
+                <div class="nav-logo-icon">🦠</div>
+                <span class="nav-logo-name">ZoonoticSense</span>
+            </a>
+            <div class="nav-right">
+                <span class="nav-pill">● ONLINE</span>
+                <a href="https://github.com/E27-25/MLOps_Project" target="_blank" class="nav-link">Docs</a>
+                <a href="/app" class="btn-primary" style="padding:9px 22px;font-size:13px;border-radius:10px;">Launch
+                    →</a>
+            </div>
+        </nav>
+
+        <!-- ── HERO ── -->
+        <section class="hero">
+            <span class="hero-tag">
+                <span class="hero-tag-dot"></span>
+                AI ZOONOTIC SURVEILLANCE SYSTEM
+            </span>
+
+            <h1 class="hero-title">
+                Hear it.<br>
+                <span class="line2">Assess it.<br>Contain it.</span>
+            </h1>
+
+            <p class="hero-sub">
+                Speak a field report. ZoonoticSense transcribes, extracts clinical signals,
+                routes to the right expert model, and speaks a risk assessment back — in under 20 seconds.
+            </p>
+
+            <div class="cta-row">
+                <a href="/app" class="btn-primary">⚡ Launch App →</a>
+                <a href="https://github.com/E27-25/MLOps_Project" target="_blank" class="btn-outline">📖 View on
+                    GitHub</a>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-strip">
+                <div class="stat-item">
+                    <span class="stat-num">6</span>
+                    <div class="stat-lbl">Disease Domains</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-num">F1&nbsp;0.83</span>
+                    <div class="stat-lbl">Router Accuracy</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-num">&lt;20s</span>
+                    <div class="stat-lbl">Full Pipeline</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-num">100%</span>
+                    <div class="stat-lbl">On-Device Local</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── PIPELINE ── -->
+        <section class="pipeline-section">
+            <div class="pipeline-wrap">
+                <div class="pipeline-header reveal">
+                    <div class="section-label">How it works</div>
+                    <h2 class="section-title">One voice.<br>Five stages.</h2>
+                    <p class="section-sub">Each layer is purpose-built — from raw audio waveform to a spoken risk
+                        assessment.</p>
+                </div>
+                <div class="pipeline-flow reveal" style="transition-delay:0.15s">
+
+                    <div class="pl-step" data-color="sapph">
+                        <div class="pl-circle">🎤</div>
+                        <div class="pl-name">ASR</div>
+                        <div class="pl-desc">Whisper speech recognition</div>
+                    </div>
+                    <div class="pl-connector">
+                        <div class="pl-conn-line">
+                            <div class="pl-conn-pulse"></div>
+                        </div>
+                    </div>
+
+                    <div class="pl-step" data-color="mauve">
+                        <div class="pl-circle">🧬</div>
+                        <div class="pl-name">NER</div>
+                        <div class="pl-desc">Clinical entity extraction</div>
+                    </div>
+                    <div class="pl-connector">
+                        <div class="pl-conn-line">
+                            <div class="pl-conn-pulse"></div>
+                        </div>
+                    </div>
+
+                    <div class="pl-step" data-color="yellow">
+                        <div class="pl-circle">🧭</div>
+                        <div class="pl-name">Router</div>
+                        <div class="pl-desc">Domain classification</div>
+                    </div>
+                    <div class="pl-connector">
+                        <div class="pl-conn-line">
+                            <div class="pl-conn-pulse"></div>
+                        </div>
+                    </div>
+
+                    <div class="pl-step" data-color="peach">
+                        <div class="pl-circle">📚</div>
+                        <div class="pl-name">RAG</div>
+                        <div class="pl-desc">Vector knowledge retrieval</div>
+                    </div>
+                    <div class="pl-connector">
+                        <div class="pl-conn-line">
+                            <div class="pl-conn-pulse"></div>
+                        </div>
+                    </div>
+
+                    <div class="pl-step" data-color="green">
+                        <div class="pl-circle">🔊</div>
+                        <div class="pl-name">TTS</div>
+                        <div class="pl-desc">Streaming voice synthesis</div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ── FEATURE GRID ── -->
+        <section class="section" style="padding-top:0">
+            <div class="section-label reveal">Capabilities</div>
+            <h2 class="section-title reveal">Built for the field.</h2>
+            <p class="section-sub reveal" style="margin-bottom:52px;transition-delay:0.1s">
+                From a farmer calling in a sick flock to a district vet filing an alert — every voice report is handled.
+            </p>
+            <div class="feature-grid">
+                <div class="feat-card reveal">
+                    <div class="feat-icon-wrap">🎤</div>
+                    <div class="feat-title">Voice-First Input</div>
+                    <div class="feat-desc">Record directly in noisy field conditions. MLX Whisper transcribes in real
+                        time even with accents and background noise.</div>
+                    <span class="feat-badge">MLX WHISPER</span>
+                </div>
+                <div class="feat-card reveal">
+                    <div class="feat-icon-wrap">🧬</div>
+                    <div class="feat-title">Clinical NER</div>
+                    <div class="feat-desc">Extracts species, symptoms, mortality count, location and timeframe from
+                        natural language field reports.</div>
+                    <span class="feat-badge">QWEN3 4B-INT4</span>
+                </div>
+                <div class="feat-card reveal">
+                    <div class="feat-icon-wrap">🧭</div>
+                    <div class="feat-title">Smart Routing</div>
+                    <div class="feat-desc">Avian flu, FMD, Nipah, Rabies, Leptospirosis, General — the right specialist
+                        knowledge is selected automatically.</div>
+                    <span class="feat-badge">F1 0.83 · 6 DOMAINS</span>
+                </div>
+                <div class="feat-card reveal">
+                    <div class="feat-icon-wrap">📚</div>
+                    <div class="feat-title">RAG Knowledge</div>
+                    <div class="feat-desc">Per-domain FAISS vector stores ground every LLM response in verified
+                        veterinary documentation.</div>
+                    <span class="feat-badge">FAISS · SENTENCE-BERT</span>
+                </div>
+                <div class="feat-card reveal">
+                    <div class="feat-icon-wrap">🔊</div>
+                    <div class="feat-title">Streaming TTS</div>
+                    <div class="feat-desc">Assessment is synthesised and spoken sentence-by-sentence as the model
+                        generates it — no waiting for the full response.</div>
+                    <span class="feat-badge">KOKORO TTS</span>
+                </div>
+                <div class="feat-card reveal">
+                    <div class="feat-icon-wrap">🔒</div>
+                    <div class="feat-title">Fully Local</div>
+                    <div class="feat-desc">Every model runs on-device with Apple MLX acceleration on Apple Silicon. No
+                        API keys. No data leaves the machine.</div>
+                    <span class="feat-badge">APPLE MLX · ON-DEVICE</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── CTA BANNER ── -->
+        <section class="cta-banner reveal">
+            <div class="cta-glow"></div>
+            <div class="cta-banner-inner">
+                <h2 class="cta-title">Ready to start<br><span
+                        style="background:linear-gradient(135deg,var(--mauve),var(--blue));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">your
+                        assessment?</span></h2>
+                <p class="cta-sub">Speak a report. Get a diagnosis. Protect your animals and your community.</p>
+                <div class="cta-row">
+                    <a href="/app" class="btn-primary">⚡ Launch ZoonoticSense →</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── FOOTER ── -->
+        <footer>
+            <span>ZoonoticSense v2.0 · MLX · Qwen3 · Kokoro · FAISS</span>
+            <span>
+                <a href="https://github.com/E27-25/MLOps_Project" target="_blank">GitHub</a>
+                &nbsp;·&nbsp;
+                <a href="/app">App</a>
+            </span>
+        </footer>
+
+    </div><!-- .page -->
+
+    <script>
+        // ══ MOUSE-TRACKING AURORA ═══════════════════════════════════════════════════
+        const orbA = document.querySelector('.orb-a');
+        const orbB = document.querySelector('.orb-b');
+        const orbC = document.querySelector('.orb-c');
+
+        let mouseX = 0, mouseY = 0;
+        let lerpX = 0, lerpY = 0;
+
+        document.addEventListener('mousemove', e => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function animateOrbs() {
+            lerpX += (mouseX - lerpX) * 0.05;
+            lerpY += (mouseY - lerpY) * 0.05;
+
+            const ox = (lerpX / window.innerWidth - 0.5) * 120;
+            const oy = (lerpY / window.innerHeight - 0.5) * 80;
+
+            orbA.style.transform = `translate(${ox * 0.6}px, ${oy * 0.6}px)`;
+            orbB.style.transform = `translate(${-ox * 0.5}px, ${-oy * 0.4}px)`;
+            orbC.style.transform = `translate(calc(-50% + ${ox * 0.3}px), calc(-50% + ${oy * 0.3}px))`;
+            requestAnimationFrame(animateOrbs);
+        }
+        animateOrbs();
+
+        // ══ NAV SCROLL ══════════════════════════════════════════════════════════════
+        window.addEventListener('scroll', () => {
+            document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40);
+        }, { passive: true });
+
+        // ══ SCROLL REVEAL ═══════════════════════════════════════════════════════════
+        const io = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+        // ══ 3D CARD TILT ════════════════════════════════════════════════════════════
+        document.querySelectorAll('.feat-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const r = card.getBoundingClientRect();
+                const cx = r.left + r.width / 2;
+                const cy = r.top + r.height / 2;
+                const dx = (e.clientX - cx) / (r.width / 2);
+                const dy = (e.clientY - cy) / (r.height / 2);
+                card.style.transform = `perspective(700px) rotateX(${-dy * 5}deg) rotateY(${dx * 5}deg) translateZ(4px)`;
+                // radial glow follows cursor
+                card.style.setProperty('--mx', `${((e.clientX - r.left) / r.width * 100).toFixed(1)}%`);
+                card.style.setProperty('--my', `${((e.clientY - r.top) / r.height * 100).toFixed(1)}%`);
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+            });
+        });
+
+        // ══ PIPELINE STEP CLICK INFO ══════════════════════════════════════════════
+        const PIPELINE_INFO = {
+            ASR: 'Whisper (MLX) — converts your voice to text in under 2 seconds.',
+            NER: 'Qwen3-4B-4bit — extracts species, symptoms, mortality and location with a structured JSON prompt.',
+            Router: 'Sentence-BERT fine-tuned on 200+ zoonotic examples — routes to the correct disease domain.',
+            RAG: 'FAISS vector search over per-domain vet documents — 3 top passages retrieved and ranked.',
+            TTS: 'Kokoro TTS — streams audio sentence-by-sentence so you hear the result as it\'s generated.',
+        };
+        document.querySelectorAll('.pl-step').forEach(step => {
+            const name = step.querySelector('.pl-name').textContent.trim();
+            step.style.cursor = 'pointer';
+            let tip = null;
+            step.addEventListener('click', () => {
+                if (tip) { tip.remove(); tip = null; return; }
+                tip = document.createElement('div');
+                tip.className = 'pl-tip';
+                tip.textContent = PIPELINE_INFO[name] || '';
+                Object.assign(tip.style, {
+                    position: 'absolute', bottom: 'calc(100% + 12px)', left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'var(--surface)', border: '1px solid var(--border)',
+                    borderRadius: '10px', padding: '10px 14px',
+                    fontSize: '11px', color: 'var(--sub)', lineHeight: '1.65',
+                    width: '200px', textAlign: 'left',
+                    boxShadow: '0 16px 40px rgba(0,0,0,0.6)',
+                    zIndex: '200', whiteSpace: 'normal',
+                    animation: 'fadeIn .2s ease',
+                });
+                step.querySelector('.pl-circle').style.position = 'relative';
+                step.querySelector('.pl-circle').appendChild(tip);
+                const close = () => { tip?.remove(); tip = null; };
+                setTimeout(() => document.addEventListener('click', close, { once: true }), 10);
+            });
+        });
+
+        // inject fadeIn
+        const ks = document.createElement('style');
+        ks.textContent = `@keyframes fadeIn { from { opacity:0; transform:translateX(-50%) translateY(6px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }`;
+        document.head.appendChild(ks);
+    </script>
+</body>
+
+</html>
