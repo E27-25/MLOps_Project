@@ -1,0 +1,36 @@
+# ZoonoticSense — Python Dependencies
+# Install: pip install -r requirements.txt --break-system-packages
+
+# ── Core web framework ──────────────────────────────────────────
+flask>=3.0.0
+
+# ── ASR ─────────────────────────────────────────────────────────
+openai-whisper>=20231117       # fallback (non-MLX)
+mlx-whisper>=0.4.0             # Mac M-series (auto-selected)
+
+# ── LLM (choose one path) ───────────────────────────────────────
+mlx-lm>=0.19.0                 # Mac M-series (fast, recommended)
+transformers>=4.40.0           # fallback (Linux/cloud)
+torch>=2.2.0                   # needed by transformers fallback
+accelerate>=0.27.0             # needed by transformers fallback
+
+# ── TTS ─────────────────────────────────────────────────────────
+kokoro>=0.9.4
+soundfile>=0.12.1
+
+# ── Embeddings + Router + RAG ───────────────────────────────────
+sentence-transformers>=3.0.0
+scikit-learn>=1.4.0            # MLP router training
+numpy>=1.26.0
+
+# ── Audio processing ────────────────────────────────────────────
+# ffmpeg must be installed separately:
+#   Mac:   brew install ffmpeg
+#   Linux: apt-get install ffmpeg
+
+# ── Optional: FAISS for large corpora ──────────────────────────
+# faiss-cpu>=1.8.0             # uncomment if corpus > 10k chunks
+# langchain>=0.2.0             # uncomment for document loading
+
+# ── MLOps (optional) ───────────────────────────────────────────
+# mlflow>=2.13.0               # experiment tracking

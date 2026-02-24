@@ -1,0 +1,46 @@
+AVIAN INFLUENZA — CLINICAL SIGNS AND DIAGNOSIS
+Source: WOAH Terrestrial Manual Chapter 3.3.4 / FAO Animal Health Manual
+
+SPECIES AFFECTED:
+Chickens, turkeys, ducks, geese, quail, pheasants, ostriches. All domestic and wild birds susceptible.
+Wild waterfowl (ducks, geese, shorebirds) are natural reservoir hosts and often carry virus asymptomatically.
+
+HPAI (H5N1/H5N6/H5N8) CLINICAL SIGNS:
+- Sudden death with no premonitory signs (peracute form)
+- Severe depression, ruffled feathers, huddling
+- Cessation of egg production; soft-shelled, misshapen eggs
+- Cyanosis (blue-purple discoloration) of comb, wattles, and unfeathered skin
+- Facial edema, swelling of head, neck, eyelids
+- Blood-tinged nasal and oral discharge
+- Watery green-yellow diarrhea
+- Neurological signs: ataxia, head and neck twisting (torticollis), loss of coordination
+- Respiratory distress: gasping, gurgling, rattling breath
+- Hemorrhages on shanks and feet (petechiae on toes)
+- Mortality: 90–100% within 48–72 hours of first signs
+
+LPAI (H9N2, H7N9 low path) CLINICAL SIGNS:
+- Mild to moderate respiratory signs: sneezing, nasal discharge
+- Reduced egg production (10–40% drop)
+- Lower mortality unless complicated by secondary bacterial infection
+- Can progress to HPAI through mutation in the field
+
+DIFFERENTIALS TO CONSIDER:
+- Newcastle Disease (NDV): similar neurological and respiratory signs; differentiate by PCR
+- Infectious Bronchitis (IBV): mainly respiratory and reproductive; lower mortality
+- Fowl Cholera (Pasteurella multocida): sudden death, blue comb, oily diarrhea
+- Marek's Disease: progressive paralysis, usually in young birds only
+- Mycoplasma synoviae: joint swelling, respiratory signs, slower progression
+
+LABORATORY CONFIRMATION:
+- Swabs: cloacal + oropharyngeal; fresh tissues (trachea, spleen, brain)
+- Tests: RT-PCR (gold standard), hemagglutination inhibition (HI), virus isolation
+- Notify national veterinary authority immediately upon suspicion
+- Samples to national reference laboratory on ice within 24 hours
+
+FIELD CHECKLIST:
+□ Multiple birds dead suddenly (>3 in one flock in one day)
+□ Comb/wattles blue-purple
+□ Swollen head or eyelids
+□ Twisting neck or circling behavior
+□ Blood discharge from nostrils
+→ REPORT IMMEDIATELY to District Livestock Development Officer

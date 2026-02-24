@@ -1,0 +1,19 @@
+{
+  "classes": [
+    "avian_flu",
+    "fmd",
+    "general",
+    "leptospirosis",
+    "nipah_hendra",
+    "rabies"
+  ],
+  "domains": [
+    "avian_flu",
+    "rabies",
+    "fmd",
+    "nipah_hendra",
+    "leptospirosis",
+    "general"
+  ],
+  "n_examples": 103
+}

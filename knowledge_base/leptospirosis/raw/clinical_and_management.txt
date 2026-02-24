@@ -1,0 +1,77 @@
+LEPTOSPIROSIS — CLINICAL GUIDE, MANAGEMENT, AND PREVENTION
+Source: WHO Leptospirosis Guidelines / CDC / Merck Veterinary Manual / Thai DDC
+
+ETIOLOGY:
+Pathogenic Leptospira serovars (>260 known). Family Leptospiraceae.
+Primary reservoir: RATS (Rattus norvegicus, R. rattus) — chronic renal carrier, shed bacteria in urine lifelong.
+Other reservoirs: cattle, pigs, dogs, horses, raccoons, opossums, hedgehogs.
+Environment: survives in warm, moist soil and water for weeks to months.
+
+TRANSMISSION (ANIMALS TO HUMANS):
+Direct: contact with urine, blood, or tissues of infected animals
+Indirect (most common): contact with water, soil, or mud contaminated with infected urine
+Entry routes: cuts, abrasions, mucous membranes (eyes, nose, mouth), waterlogged skin
+
+HIGH-RISK OCCUPATIONS:
+- Rice farmers and field workers (flooded paddies)
+- Sugarcane cutters (rat-infested fields)
+- Livestock farmers (cattle, pig, dairy)
+- Sewage and slaughterhouse workers
+- Veterinarians and animal handlers
+- Military personnel in jungle/field training
+- Flood disaster response workers
+
+ANIMAL CLINICAL SIGNS:
+CATTLE:
+- Abortion storm: sudden unexplained abortions (late gestation)
+- Hemoglobinuria: red/brown discolored urine ("red water")
+- Hemolytic anemia, jaundice (yellow mucous membranes)
+- Acute mastitis: "flabby bag syndrome" — sudden milk drop, hemorrhagic milk
+- Drop in milk production (50–75% in dairy herds)
+
+DOGS:
+- Acute renal failure: vomiting, lethargy, brown urine, not urinating
+- Hepatitis: jaundice, vomiting, anorexia
+- Leptospiral pulmonary hemorrhage syndrome (LPHS): coughing blood, severe respiratory distress
+- Uveitis (eye inflammation): late complication, can lead to blindness
+- Serovar Canicola: primarily renal disease; Icterohaemorrhagiae: severe jaundice
+
+PIGS: abortion, stillbirths, weak piglets; less clinical than cattle
+HORSES: abortion, recurrent uveitis ("moon blindness"), rarely severe systemic disease
+
+HUMAN CLINICAL FEATURES:
+Phase 1 — Leptospiremic (days 1–7):
+- Sudden high fever (39–40°C), severe headache, myalgia (especially calf muscles)
+- Conjunctival suffusion (red eyes without discharge — key sign)
+- Rash, vomiting, abdominal pain
+
+Phase 2 — Immune/Weil's phase (days 7–14):
+Mild (80% of cases): spontaneous recovery
+Severe/Weil's Disease (10–20%):
+- Jaundice + renal failure + bleeding = classic Weil's triad
+- Pulmonary hemorrhage (can be fatal within hours)
+- Myocarditis, uveitis, meningitis
+
+DIAGNOSIS:
+- MAT (Microscopic Agglutination Test): gold standard serology; paired samples at 1 and 2 weeks
+- PCR: blood in first week of illness; urine from day 7 onward
+- Culture: takes 13 weeks; reference labs only
+- ELISA: rapid screening; less specific
+
+TREATMENT:
+Mild cases: Doxycycline 100 mg twice daily for 7 days
+Severe/Weil's Disease: IV Penicillin G 1.5 million units every 6 hours, OR IV Ceftriaxone 1 g daily x 7 days
+Supportive: dialysis for renal failure; blood products for hemorrhage
+
+FLOOD OUTBREAK PROTOCOL (Thailand):
+- Enhanced surveillance after major floods (July–October rainy season peak)
+- Mass doxycycline prophylaxis: 200 mg once weekly for high-risk flood workers
+- Vector control: rat trapping/bait before and after floods
+- Watershed alerts issued by DDC (Department of Disease Control)
+- Report clusters: ≥2 cases with common exposure site within 14 days
+
+VETERINARY PREVENTION:
+- Cattle/pig vaccination: annual bivalent or multivalent Leptospira bacterin
+- Rodent control: critical for reservoir management; regular baiting
+- Drain standing water, repair leaking pipes, seal rodent entry
+- Separate animal drinking water from open ponds/streams

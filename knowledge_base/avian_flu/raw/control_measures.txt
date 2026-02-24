@@ -1,0 +1,48 @@
+AVIAN INFLUENZA — OUTBREAK CONTROL AND BIOSECURITY
+Source: FAO EMPRES-i / WOAH OIE Codes / Thai DLD Emergency Protocol
+
+IMMEDIATE ACTIONS ON SUSPICION:
+1. Stop all bird movement on and off premises immediately
+2. Call District Livestock Development Officer (DLD): 02-653-4444
+3. Isolate sick birds from healthy birds
+4. Do NOT allow visitors or vehicles into/out of farm
+5. Wear gloves, mask, and protective clothing before entering affected area
+6. Do NOT consume or sell sick or dead birds
+
+OFFICIAL RESPONSE (DLD-led):
+- Quarantine radius: 3 km protection zone, 10 km surveillance zone
+- Culling: humane depopulation of all poultry on affected premises
+- Stamping out: destroy eggs, feed, litter, and equipment
+- Dead bird disposal: incineration or deep burial (>1 m depth)
+- Decontamination: sodium hydroxide 2% or glutaraldehyde across all surfaces
+- Full cleaning + disinfection sequence mandatory before restocking
+
+MOVEMENT RESTRICTIONS:
+- No movement of live poultry, eggs, or used equipment within zones
+- Vehicle disinfection checkpoints at zone boundaries
+- Fresh poultry products may move only with official veterinary certificate
+
+ZOONOTIC PRECAUTIONS:
+- H5N1 CFR in humans ~57%. Wear N95 + gloves + goggles + coverall during culling
+- Post-exposure antiviral: oseltamivir (Tamiflu) 75mg twice daily x 5 days
+- Report any fever/respiratory symptoms within 10 days of exposure to public health
+- Healthcare providers: isolate suspected human H5N1 cases, airborne precautions
+
+VACCINATION STRATEGY (where permitted):
+- Emergency vaccination with matching H5 clade vaccine may be authorized
+- Vaccinated flocks must be differentiated from infected flocks (DIVA strategy)
+- Vaccination does not replace culling in HPAI outbreaks
+
+SURVEILLANCE AFTER OUTBREAK:
+- Minimum 28-day standstill after last death + full decontamination
+- Sentinel bird testing before restocking
+- Enhanced surveillance for 90 days post-restocking
+- Report all-clear to DLD before resuming commercial operations
+
+BIOSECURITY UPGRADES (permanent):
+- All-in/all-out production system
+- Strict visitor log and disinfection footbath at every entrance
+- No sharing of equipment between farms
+- Wild bird exclusion: cover ponds, repair shed gaps
+- Rodent control program (weekly)
+- Dead bird disposal protocol with log records

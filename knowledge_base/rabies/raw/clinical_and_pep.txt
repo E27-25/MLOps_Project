@@ -1,0 +1,52 @@
+RABIES — CLINICAL GUIDE AND POST-EXPOSURE PROTOCOL
+Source: WHO Expert Consultation on Rabies TRS 1012 / CDC Rabies Prevention
+
+ETIOLOGY:
+Rabies virus (RABV), genus Lyssavirus, family Rhabdoviridae.
+100% fatal once clinical signs develop. No approved treatment post-symptom onset.
+Transmission: saliva of infected animal via bite, scratch, or mucous membrane contact.
+
+CLINICAL SIGNS IN DOGS (primary vector in Asia/Africa):
+Prodromal phase (2–3 days): personality change, anxiety, fever, hiding
+Furious (excitative) phase:
+- Extreme aggression, unprovoked biting of people, animals, objects
+- Inability to swallow (hydrophobia — fear of water due to throat spasms)
+- Excessive salivation ("foaming at the mouth") — virus-loaded
+- Roaming, disorientation, altered bark (hoarse)
+- Photophobia, erratic behavior
+Paralytic (dumb) phase:
+- Progressive ascending paralysis
+- Drooping jaw, tongue hanging out
+- Cannot swallow, drool continuously
+- Coma → death (within 10 days of first signs)
+
+KEY RULE: Any dog showing sudden aggression + hypersalivation + ataxia = SUSPECT RABIES
+
+CLINICAL SIGNS IN CATS: similar to dogs; furious form more common; severe aggression
+CATTLE: dumb form predominant; bellowing, yawning, progressive paralysis of hindquarters
+BATS: may be found on ground (unable to fly), aggressive, active during daytime
+
+ANIMAL OBSERVATION RULE (Dogs/Cats/Ferrets only):
+- Observe clinically normal biting animal for 10 days
+- If alive and healthy on day 10: not rabid at time of bite
+- If animal dies/shows signs: submit brain for fluorescent antibody test (FAT)
+
+WOUND CATEGORIES AND PEP:
+Category I: touching/feeding animal, licks on intact skin → No PEP needed
+Category II: nibbling, minor scratches without bleeding → Wound wash + Vaccine
+Category III: single/multiple transdermal bites, licks on broken skin, ANY bat exposure → Wound wash + Vaccine + RIG
+
+POST-EXPOSURE PROPHYLAXIS (PEP) STEPS:
+1. IMMEDIATE wound washing: soap and water vigorously for 15 minutes
+2. Apply iodine solution or 70% ethanol
+3. DO NOT suture wound (increases viral entry)
+4. Rabies vaccine: Essen schedule (4 doses: days 0, 3, 7, 14) IM deltoid
+5. Rabies Immunoglobulin (RIG): 20 IU/kg human RIG or 40 IU/kg equine RIG
+   - Infiltrate as much as possible INTO and around the wound on Day 0
+   - Remaining dose: IM at distant site from vaccine
+
+THAI CONTEXT:
+- Rabies endemic in Thailand, especially dog-mediated
+- Vaccine available at government hospitals (free or subsidized)
+- RIG shortage: report to provincial health office if unavailable
+- Call 1422 (Department of Disease Control hotline) for guidance

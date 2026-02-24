@@ -1,0 +1,22 @@
+version: '3.9'
+
+services:
+  zoonoticsense:
+    build: .
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./knowledge_base:/app/knowledge_base   # persist KB indexes
+      - ./models:/app/models                   # persist trained router
+    environment:
+      - USE_MLX=false
+      - LLM_MODEL=Qwen/Qwen2.5-1.5B-Instruct
+      - WHISPER_SIZE=base
+      - PORT=7860
+      - DEBUG=false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

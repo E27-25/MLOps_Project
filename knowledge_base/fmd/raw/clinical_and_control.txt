@@ -1,0 +1,73 @@
+FOOT-AND-MOUTH DISEASE (FMD) — CLINICAL GUIDE AND CONTROL
+Source: WOAH Terrestrial Code Section 8.8 / FAO FMD Technical Manual
+
+ETIOLOGY:
+Foot-and-Mouth Disease Virus (FMDV), Aphthovirus genus, Picornaviridae family.
+7 serotypes: O, A, C, SAT1, SAT2, SAT3, Asia1. No cross-immunity between serotypes.
+Southeast Asia: predominantly serotype O, A, and Asia1 circulating.
+
+SPECIES AFFECTED:
+Primary: cattle, buffalo, pigs, sheep, goats, deer
+Wildlife: elephants, rhinoceros, giraffe, hedgehogs
+NOT affected: horses, dogs, cats (resistant)
+Pigs = amplifying host (shed 1000x more airborne virus than cattle)
+
+CLINICAL SIGNS:
+Incubation: 2–14 days (average 3–5 days)
+
+CATTLE AND BUFFALO:
+- High fever (40–41°C) for 1–2 days before vesicles appear
+- Drooling excessively, smacking lips, reluctance to eat
+- Vesicles (fluid-filled blisters): tongue (gray-white, on dorsal surface), dental pad, lips, gums, palate
+- Ruptured vesicles → raw, painful ulcers on mouth
+- Foot lesions: coronary band (hair line junction), interdigital space, bulb of heel
+- Severe lameness: cattle refuse to walk, may kneel when eating
+- Teat lesions → mastitis, milk drop (50–80%)
+- "Milk drop syndrome" in dairy cows: sudden unexplained production fall before oral signs
+
+PIGS:
+- Foot lesions more prominent than mouth lesions
+- Severe lameness — pigs refuse to stand; squeal when moved
+- Blisters on snout (common), teats
+
+SHEEP AND GOATS:
+- Often subclinical or mild
+- Foot lesions predominant; mouth lesions mild
+- Abortion possible in pregnant animals
+
+MORTALITY:
+- Adult animals: low (<5%) unless secondary bacterial infections
+- Young calves/lambs/piglets: high (50–100%) from myocarditis ("tiger heart")
+- Morbidity: 100% in naive unvaccinated population
+
+DIFFERENTIAL DIAGNOSES:
+- Vesicular Stomatitis (VSV): horses affected (helps differentiate)
+- Swine Vesicular Disease (SVD): pigs only; cannot differentiate clinically from FMD in pigs
+- Bluetongue: sheep; no foot lesions; insect vector
+- Bovine Viral Diarrhea (BVD): ulcers but usually no vesicles
+→ LABORATORY CONFIRMATION ESSENTIAL: RT-PCR, antigen ELISA
+
+OUTBREAK RESPONSE:
+1. IMMEDIATELY report to DLD — FMD is NOTIFIABLE (WOAH List A)
+2. Stop all animal movement on/off premises
+3. Do not allow other farm visits; change clothing and shoes before leaving
+4. Separate sick animals in clean area; good nursing care (soft feed, clean water)
+5. Implement quarantine zone (3 km) + surveillance zone (10 km)
+
+FMD SPREAD MECHANISMS:
+- Aerosol: virus travels up to 60 km downwind on land; 300 km over sea
+- Contact: direct animal-to-animal; highest risk at markets
+- Fomites: boots, vehicles, clothing worn by handlers
+- Products: fresh/frozen untreated meat from infected animals; milk
+- 2001 UK: spread via illegally imported infected meat fed to pigs (swill feeding)
+
+ECONOMIC IMPACT:
+- Immediate export ban on live animals and animal products from affected country
+- 2001 UK outbreak: £8 billion loss
+- Asia-1 reintroduction to Europe (Bulgaria 2011): devastated livestock trade
+
+CONTROL ZONING (WOAH standards):
+- Infected Zone (IZ): mandatory stamping out or emergency vaccination
+- Protection Zone (PZ): 3 km radius — enhanced surveillance + movement control
+- Surveillance Zone (SZ): 10 km — movement control
+- FMD-free zone with vaccination vs without vaccination (different trade implications)
