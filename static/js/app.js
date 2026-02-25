@@ -27,6 +27,7 @@ const state = {
   audioChunks: [],
   audioQueue: [],   // {audio, btn, blobUrl} entries
   isPlaying: false,
+  currentAudio: null, // currently playing Audio element
   chunkIdx: 0,
   runId: 0,         // incremented each run to discard stale onended callbacks
 };
@@ -130,12 +131,44 @@ const wave = (() => {
 // Start idle wave on load
 document.addEventListener('DOMContentLoaded', () => wave.startIdle());
 
-// ── Stop TTS ────────────────────────────────────────────────────────────────
-function stopTTS() {
-  state.runId++;            // invalidates all in-flight onended callbacks
-  state.audioQueue = [];
-  state.isPlaying = false;
-  document.getElementById('audioLabel').textContent = 'Stopped.';
+// ── Stop / Pause / Resume TTS ────────────────────────────────────────────
+function toggleTTS() {
+  const btn = document.getElementById('stopTtsBtn');
+  if (!state.currentAudio) {
+    // Nothing playing — full stop
+    state.runId++;
+    state.audioQueue = [];
+    state.isPlaying = false;
+    document.getElementById('audioLabel').textContent = 'Stopped.';
+    if (btn) { btn.textContent = '■ Stop'; btn.dataset.paused = ''; }
+    return;
+  }
+  if (state.currentAudio.paused) {
+    // Currently paused — resume
+    state.currentAudio.play();
+    state.isPlaying = true;
+    document.getElementById('audioLabel').textContent = 'Playing…';
+    if (btn) { btn.textContent = '⏸ Pause'; delete btn.dataset.paused; }
+  } else {
+    // Currently playing — pause (keep queue, keep audio position)
+    state.currentAudio.pause();
+    state.isPlaying = false;
+    document.getElementById('audioLabel').textContent = 'Paused.';
+    if (btn) { btn.textContent = '▶ Resume'; btn.dataset.paused = '1'; }
+  }
+}
+// Keep old name for onclick attribute compatibility
+function stopTTS() { toggleTTS(); }
+
+// ── Lightweight markdown → HTML (bold, italic, bullets) ─────────────────
+function mdToHtml(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')   // **bold**
+    .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')            // *italic*
+    .replace(/^[-•]\s+(.+)/gm, '<li>$1</li>')           // - bullets
+    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')             // wrap list
+    .replace(/\n{2,}/g, '</p><p>')                         // paragraphs
+    .replace(/\n/g, ' ');
 }
 
 // ── Panel summary helpers ───────────────────────────────────────────────────
@@ -201,7 +234,8 @@ async function startRecording() {
     state.isRecording = true;
 
     document.getElementById('micBtn').classList.add('recording');
-    document.getElementById('micIcon').textContent = '⏹';
+    document.getElementById('micIcon').innerHTML = '<text style="font-size:18px;line-height:1;">⏹</text>';
+    document.getElementById('micIcon').setAttribute('viewBox', '0 0 24 24');
     document.getElementById('micLabel').textContent = 'Recording...';
     setStatus('Recording...', 'busy');
 
@@ -219,8 +253,8 @@ function stopRecording() {
     state.mediaRecorder.stop();
     state.isRecording = false;
     document.getElementById('micBtn').classList.remove('recording');
-    document.getElementById('micIcon').textContent = '🎤';
-    document.getElementById('micLabel').textContent = 'Processing…';
+    document.getElementById('micIcon').innerHTML = '<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>';
+    document.getElementById('micLabel').textContent = 'Processing\u2026';
     wave.stopRecording(); // back to idle animation
   }
 }
@@ -308,12 +342,19 @@ async function runAnalysis(transcript, fromAudio = true) {
     setEpiSummary(fields); // update collapsed header summary
 
     // Router done
-    stepStatus('router', 'done',
-      `${data.domain} · ${(data.confidence * 100).toFixed(0)}%`,
-      `${data.timing.route_s}s`
-    );
-    renderRouterBars(data.domain, data.all_scores);
-    setRouterSummary(data.domain, data.confidence); // update collapsed header summary
+    const isOffTopic = !!(fields._off_topic);
+    if (isOffTopic) {
+      // Chat mode — hide confidence panel, just label the step
+      stepStatus('router', 'done', 'chat mode', `${data.timing.route_s}s`);
+      document.getElementById('routerCard').classList.add('hidden');
+    } else {
+      stepStatus('router', 'done',
+        `${data.domain} · ${(data.confidence * 100).toFixed(0)}%`,
+        `${data.timing.route_s}s`
+      );
+      renderRouterBars(data.domain, data.all_scores);
+      setRouterSummary(data.domain, data.confidence);
+    }
 
     // RAG done
     stepStatus('rag', 'done',
@@ -415,7 +456,7 @@ async function streamResponse(domain, epiFields, ragChunks) {
           if (evt.type === 'text') {
             fullText += ' ' + evt.chunk;
             document.getElementById('riskText').innerHTML =
-              fullText.trim() + '<span class="cursor"></span>';
+              '<p>' + mdToHtml(fullText.trim()) + '</p><span class="cursor"></span>';
           }
 
           if (evt.type === 'audio') {
@@ -448,19 +489,26 @@ async function streamResponse(domain, epiFields, ragChunks) {
             stepStatus('llm', 'done', isChatMode ? 'replied' : 'assessment complete', `${elapsed}s`);
             stepStatus('tts', 'done', 'all chunks done', '');
 
-            document.getElementById('riskText').innerHTML = card.full_response;
+            document.getElementById('riskText').innerHTML = '<p>' + mdToHtml(card.full_response) + '</p>';
             document.getElementById('audioLabel').textContent = 'Playback complete.';
 
-            if (!isChatMode) {
-              // Risk badge
+            // Use card.is_chat as the canonical chat flag
+            const cardIsChat = card.is_chat || isChatMode;
+            if (!cardIsChat && card.risk_level !== 'NONE' && card.risk_level !== 'UNKNOWN') {
+              // Risk badge — only for real clinical responses with a valid level
               badge.className = `risk-badge ${card.risk_level}`;
               badge.textContent = card.risk_level;
+              badge.classList.remove('hidden');
 
               // Flags
               flagsEl.classList.remove('hidden');
               flagsEl.innerHTML = card.report_flag
                 ? `<span class="risk-flag report">⚠ Report to Authorities</span>`
                 : `<span class="risk-flag monitor">✓ Monitor</span>`;
+            } else {
+              // Chat or unknown — keep badge hidden
+              badge.className = 'risk-badge hidden';
+              badge.textContent = '';
             }
 
             addToHistory(card, fullText.trim());
@@ -502,8 +550,8 @@ function playNextAudio() {
     return;
   }
   state.isPlaying = true;
-
   const { audio, btn, blobUrl } = state.audioQueue.shift();
+  state.currentAudio = audio;
   const myRunId = state.runId; // close over current run ID
   btn.classList.add('playing');
 
@@ -567,16 +615,22 @@ function renderRouterBars(selectedDomain, allScores) {
   const container = document.getElementById('routerBars');
   container.innerHTML = '';
 
-  const sorted = Object.entries(allScores).sort((a, b) => b[1] - a[1]);
+  // Selected domain first, then rest sorted descending
+  const entries = Object.entries(allScores);
+  const maxScore = Math.max(...entries.map(([, v]) => v));
+  const selected = entries.filter(([d]) => d === selectedDomain);
+  const rest = entries.filter(([d]) => d !== selectedDomain).sort((a, b) => b[1] - a[1]);
+  const sorted = [...selected, ...rest];
 
   sorted.forEach(([domain, score]) => {
     const isSelected = domain === selectedDomain;
-    const pct = (score * 100).toFixed(1);
+    const pct = (score * 100).toFixed(1);             // display %
+    const barW = (score / maxScore * 100).toFixed(1); // bar width normalised to max
     container.innerHTML += `
       <div class="router-bar-row">
-        <div class="router-domain ${isSelected ? 'selected' : ''}">${domain.replace('_', ' ')}</div>
+        <div class="router-domain ${isSelected ? 'selected' : ''}">${domain.replace(/_/g, ' ')}</div>
         <div class="router-track">
-          <div class="router-fill ${isSelected ? 'selected' : ''}" style="width: ${pct}%"></div>
+          <div class="router-fill ${isSelected ? 'selected' : ''}" style="width: ${barW}%"></div>
         </div>
         <div class="router-score ${isSelected ? 'selected' : ''}">${pct}%</div>
       </div>`;

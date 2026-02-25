@@ -5,1110 +5,60 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZoonoMoE — Field Assessment</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta name="description"
     content="On-device zoonotic disease surveillance — voice to risk assessment in under 20 seconds.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="/static/css/style.css">
-  <style>
-    /* ── App-page overrides (Catppuccin Mocha, matches landing) ── */
-    :root {
-      --base: #1e1e2e;
-      --mantle: #181825;
-      --crust: #11111b;
-      --surface0: #313244;
-      --surface1: #45475a;
-      --overlay0: #6c7086;
-      --text: #cdd6f4;
-      --sub: #a6adc8;
-      --mauve: #cba6f7;
-      --blue: #89b4fa;
-      --sapphire: #74c7ec;
-      --green: #a6e3a1;
-      --yellow: #f9e2af;
-      --peach: #fab387;
-      --red: #f38ba8;
-      --mono: 'JetBrains Mono', monospace;
-      --sans: 'Inter', sans-serif;
-      --ease: cubic-bezier(.25, .46, .45, .94);
-      --radius: 14px;
-      --radius-sm: 10px;
-    }
-
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      font-family: var(--sans);
-      background: var(--base);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ── NAV ── */
-    .app-nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(17, 17, 27, .75);
-      backdrop-filter: blur(20px) saturate(1.4);
-      -webkit-backdrop-filter: blur(20px) saturate(1.4);
-      border-bottom: 1px solid rgba(203, 166, 247, .08);
-      padding: 0 24px;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .app-nav-left {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .nav-back {
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: .5px;
-      color: var(--overlay0);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
-      border-radius: 8px;
-      border: 1px solid rgba(203, 166, 247, .12);
-      transition: color .15s, border-color .15s;
-    }
-
-    .nav-back:hover {
-      color: var(--mauve);
-      border-color: rgba(203, 166, 247, .3);
-    }
-
-    .nav-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .nav-logo-mark {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, rgba(203, 166, 247, .25), rgba(137, 180, 250, .15));
-      border: 1px solid rgba(203, 166, 247, .25);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--mauve);
-      letter-spacing: -.5px;
-    }
-
-    .nav-logo-name {
-      font-family: var(--mono);
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--mauve);
-      letter-spacing: .5px;
-    }
-
-    .nav-logo-sub {
-      font-size: 10px;
-      color: var(--overlay0);
-      letter-spacing: .5px;
-    }
-
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .sys-status {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 8px rgba(166, 227, 161, .7);
-      transition: background .3s, box-shadow .3s;
-    }
-
-    .status-dot.busy {
-      background: var(--yellow);
-      box-shadow: 0 0 8px rgba(249, 226, 175, .7);
-      animation: dot-breathe 1.2s ease-in-out infinite;
-    }
-
-    .status-dot.error {
-      background: var(--red);
-      box-shadow: 0 0 8px rgba(243, 139, 168, .7);
-    }
-
-    .status-text {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--overlay0);
-    }
-
-    @keyframes dot-breathe {
-
-      0%,
-      100% {
-        opacity: 1
-      }
-
-      50% {
-        opacity: .4
-      }
-    }
-
-    /* ── HERO ── */
-    .app-hero {
-      background: linear-gradient(180deg, var(--mantle) 0%, var(--base) 100%);
-      border-bottom: 1px solid rgba(203, 166, 247, .06);
-      padding: 48px 24px 40px;
-    }
-
-    .app-hero-inner {
-      max-width: 720px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 32px;
-    }
-
-    .hero-heading {
-      text-align: center;
-    }
-
-    .hero-heading h1 {
-      font-size: clamp(1.4rem, 3vw, 1.9rem);
-      font-weight: 600;
-      letter-spacing: -.3px;
-      line-height: 1.25;
-      margin-bottom: 6px;
-    }
-
-    .hero-heading h1 span {
-      color: var(--mauve);
-    }
-
-    .hero-heading p {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--overlay0);
-      letter-spacing: .5px;
-    }
-
-    /* mic button */
-    .mic-area {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .mic-btn {
-      width: 88px;
-      height: 88px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 40% 35%, rgba(203, 166, 247, .18), rgba(137, 180, 250, .06));
-      border: 1.5px solid rgba(203, 166, 247, .3);
-      cursor: pointer;
-      transition: border-color .2s, transform .15s, box-shadow .2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      outline: none;
-      box-shadow: 0 0 0 10px rgba(203, 166, 247, .04), 0 0 40px rgba(203, 166, 247, .12);
-    }
-
-    .mic-btn:hover {
-      border-color: rgba(203, 166, 247, .65);
-      transform: scale(1.04);
-      box-shadow: 0 0 0 14px rgba(203, 166, 247, .06), 0 0 50px rgba(203, 166, 247, .20);
-    }
-
-    .mic-btn.recording {
-      border-color: rgba(243, 139, 168, .7);
-      box-shadow: 0 0 0 10px rgba(243, 139, 168, .06), 0 0 40px rgba(243, 139, 168, .25);
-      animation: mic-throb 1.1s ease-in-out infinite;
-    }
-
-    @keyframes mic-throb {
-
-      0%,
-      100% {
-        box-shadow: 0 0 0 10px rgba(243, 139, 168, .06), 0 0 40px rgba(243, 139, 168, .25);
-      }
-
-      50% {
-        box-shadow: 0 0 0 16px rgba(243, 139, 168, .04), 0 0 55px rgba(243, 139, 168, .35);
-      }
-    }
-
-    .mic-icon {
-      font-size: 28px;
-    }
-
-    .waveform-canvas {
-      border-radius: 8px;
-      opacity: .8;
-    }
-
-    .mic-hint {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--overlay0);
-      letter-spacing: .5px;
-    }
-
-    /* text input */
-    .text-input-wrap {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .text-divider {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--overlay0);
-    }
-
-    .text-divider::before,
-    .text-divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: rgba(203, 166, 247, .1);
-    }
-
-    textarea {
-      width: 100%;
-      padding: 14px 16px;
-      background: rgba(30, 30, 46, .7);
-      border: 1px solid rgba(203, 166, 247, .15);
-      border-radius: var(--radius);
-      resize: vertical;
-      color: var(--text);
-      font-family: var(--sans);
-      font-size: 13px;
-      line-height: 1.6;
-      transition: border-color .2s, box-shadow .2s;
-      outline: none;
-    }
-
-    textarea::placeholder {
-      color: var(--overlay0);
-      font-size: 12px;
-    }
-
-    textarea:focus {
-      border-color: rgba(203, 166, 247, .45);
-      box-shadow: 0 0 0 3px rgba(203, 166, 247, .07);
-    }
-
-    .btn-analyze {
-      align-self: flex-end;
-      padding: 10px 24px;
-      border-radius: var(--radius-sm);
-      background: linear-gradient(135deg, rgba(203, 166, 247, .22), rgba(137, 180, 250, .15));
-      border: 1px solid rgba(203, 166, 247, .3);
-      color: var(--mauve);
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 1px;
-      cursor: pointer;
-      transition: background .2s, border-color .2s, transform .15s;
-    }
-
-    .btn-analyze:hover {
-      background: linear-gradient(135deg, rgba(203, 166, 247, .3), rgba(137, 180, 250, .22));
-      border-color: rgba(203, 166, 247, .55);
-      transform: translateY(-1px);
-    }
-
-    .btn-analyze:active {
-      transform: translateY(0);
-    }
-
-    /* ── CONTENT SECTIONS ── */
-    .content-wrap {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 16px 0 12px;
-      border-bottom: 1px solid rgba(203, 166, 247, .07);
-      margin-bottom: 16px;
-      width: 100%;
-      cursor: pointer;
-      background: none;
-      border: none;
-      color: inherit;
-      text-align: left;
-    }
-
-    .section-header:focus-visible {
-      outline: 2px solid rgba(203, 166, 247, .4);
-      border-radius: 4px;
-    }
-
-    .section-header-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--mauve);
-      opacity: .7;
-      flex-shrink: 0;
-    }
-
-    .section-header-label {
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--overlay0);
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      flex: 1;
-    }
-
-    .panel-summary {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--sub);
-      margin-left: auto;
-    }
-
-    .toggle-chevron {
-      font-size: 11px;
-      color: var(--overlay0);
-      transition: transform .2s;
-    }
-
-    .collapse-toggle[data-collapsed] .toggle-chevron {
-      transform: rotate(-90deg);
-    }
-
-    /* pipeline section */
-    .pipeline-section {
-      padding: 20px 0;
-      display: none;
-    }
-
-    .pipeline-section.visible {
-      display: block;
-    }
-
-    .pipeline-steps {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0;
-      padding: 16px 0;
-    }
-
-    .pipe-step {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      flex: 0 0 auto;
-    }
-
-    .pipe-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--surface0);
-      border: 2px solid var(--surface1);
-      transition: all .3s;
-    }
-
-    .pipe-step.running .pipe-dot {
-      border-color: var(--yellow);
-      background: var(--yellow);
-      box-shadow: 0 0 10px rgba(249, 226, 175, .6);
-      animation: dot-breathe 1.4s ease-in-out infinite;
-    }
-
-    .pipe-step.done .pipe-dot {
-      border-color: var(--green);
-      background: var(--green);
-      box-shadow: 0 0 8px rgba(166, 227, 161, .4);
-    }
-
-    .pipe-step.error .pipe-dot {
-      border-color: var(--red);
-      background: var(--red);
-    }
-
-    .pipe-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-    }
-
-    .pipe-name {
-      font-family: var(--mono);
-      font-size: 9px;
-      font-weight: 500;
-      color: var(--sub);
-      letter-spacing: .8px;
-      text-transform: uppercase;
-    }
-
-    .pipe-detail {
-      font-family: var(--mono);
-      font-size: 8.5px;
-      color: var(--overlay0);
-      letter-spacing: .3px;
-    }
-
-    .pipe-time {
-      font-family: var(--mono);
-      font-size: 8px;
-      color: var(--mauve);
-      margin-top: 2px;
-    }
-
-    .pipe-line {
-      flex: 1;
-      height: 1.5px;
-      background: linear-gradient(90deg, rgba(203, 166, 247, .2), rgba(137, 180, 250, .12));
-      margin: 0 4px;
-      min-width: 20px;
-      align-self: flex-start;
-      margin-top: 15px;
-    }
-
-    /* assessment card */
-    .assessment-section {
-      padding: 20px 0;
-      display: none;
-    }
-
-    .assessment-section.visible {
-      display: block;
-    }
-
-    .assessment-card {
-      background: rgba(30, 30, 46, .6);
-      border: 1px solid rgba(203, 166, 247, .12);
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, .35);
-      animation: slide-up .3s ease both;
-    }
-
-    @keyframes slide-up {
-      from {
-        transform: translateY(12px);
-        opacity: 0;
-      }
-
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    .assessment-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 20px;
-      border-bottom: 1px solid rgba(203, 166, 247, .08);
-      background: linear-gradient(135deg, rgba(49, 50, 68, .6) 0%, transparent 100%);
-    }
-
-    .assessment-meta {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .assessment-expert {
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--sub);
-    }
-
-    .domain-tag,
-    .chat-tag {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      padding: 3px 10px;
-      border-radius: 5px;
-    }
-
-    .domain-tag {
-      background: rgba(203, 166, 247, .1);
-      color: var(--mauve);
-      border: 1px solid rgba(203, 166, 247, .2);
-    }
-
-    .chat-tag {
-      background: rgba(137, 180, 250, .1);
-      color: var(--blue);
-      border: 1px solid rgba(137, 180, 250, .2);
-    }
-
-    .risk-badge {
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 1.5px;
-      padding: 5px 14px;
-      border-radius: 6px;
-      text-transform: uppercase;
-      background: rgba(108, 112, 134, .15);
-      color: var(--overlay0);
-      border: 1px solid rgba(108, 112, 134, .2);
-    }
-
-    .risk-badge.LOW {
-      background: rgba(166, 227, 161, .1);
-      color: var(--green);
-      border-color: rgba(166, 227, 161, .3);
-    }
-
-    .risk-badge.MEDIUM {
-      background: rgba(249, 226, 175, .08);
-      color: var(--yellow);
-      border-color: rgba(249, 226, 175, .25);
-    }
-
-    .risk-badge.HIGH {
-      background: rgba(250, 179, 135, .1);
-      color: var(--peach);
-      border-color: rgba(250, 179, 135, .3);
-      box-shadow: 0 0 14px rgba(250, 179, 135, .15);
-    }
-
-    .risk-badge.CRITICAL {
-      background: rgba(243, 139, 168, .15);
-      color: var(--red);
-      border-color: rgba(243, 139, 168, .35);
-      box-shadow: 0 0 20px rgba(243, 139, 168, .25);
-      animation: crit-pulse 1.1s ease-in-out infinite;
-    }
-
-    @keyframes crit-pulse {
-
-      0%,
-      100% {
-        box-shadow: 0 0 20px rgba(243, 139, 168, .25)
-      }
-
-      50% {
-        box-shadow: 0 0 32px rgba(243, 139, 168, .45)
-      }
-    }
-
-    .assessment-body {
-      padding: 20px;
-    }
-
-    .section-label {
-      font-family: var(--mono);
-      font-size: 9px;
-      color: var(--overlay0);
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    .assessment-text {
-      font-size: 13.5px;
-      line-height: 1.75;
-      color: var(--text);
-      white-space: pre-wrap;
-    }
-
-    .risk-flags {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      padding: 0 20px 16px;
-    }
-
-    .risk-flag {
-      padding: 4px 12px;
-      border-radius: 5px;
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      font-weight: 500;
-    }
-
-    .risk-flag.report {
-      background: rgba(243, 139, 168, .1);
-      color: var(--red);
-      border: 1px solid rgba(243, 139, 168, .25);
-    }
-
-    .risk-flag.monitor {
-      background: rgba(166, 227, 161, .1);
-      color: var(--green);
-      border: 1px solid rgba(166, 227, 161, .25);
-    }
-
-    .risk-flag.isolate {
-      background: rgba(249, 226, 175, .08);
-      color: var(--yellow);
-      border: 1px solid rgba(249, 226, 175, .2);
-    }
-
-    .audio-bar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 20px;
-      border-top: 1px solid rgba(203, 166, 247, .08);
-      background: rgba(17, 17, 27, .4);
-    }
-
-
-    .audio-icon {
-      font-size: 14px;
-    }
-
-    .audio-label {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--overlay0);
-      flex: 1;
-    }
-
-    .audio-queue {
-      display: flex;
-      gap: 5px;
-    }
-
-    .audio-chunk {
-      width: 20px;
-      height: 20px;
-      border-radius: 4px;
-      background: var(--surface0);
-      border: none;
-      cursor: pointer;
-      font-size: 9px;
-      color: var(--overlay0);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background .15s;
-    }
-
-    .audio-chunk:hover {
-      background: var(--surface1);
-    }
-
-    .audio-chunk.playing {
-      background: rgba(203, 166, 247, .18);
-      color: var(--mauve);
-    }
-
-    .stop-tts-btn {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 1px;
-      padding: 4px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      background: rgba(243, 139, 168, .1);
-      border: 1px solid rgba(243, 139, 168, .2);
-      color: var(--red);
-      transition: background .15s;
-    }
-
-    .stop-tts-btn:hover {
-      background: rgba(243, 139, 168, .2);
-    }
-
-    /* tts script */
-    .tts-script-wrap {
-      border-top: 1px solid rgba(203, 166, 247, .07);
-    }
-
-    .tts-toggle {
-      padding: 12px 20px !important;
-    }
-
-    .tts-script-list {
-      list-style: none;
-      padding: 6px 0 12px;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .tts-line {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 0 20px;
-    }
-
-    .tts-num {
-      font-family: var(--mono);
-      font-size: 9px;
-      color: var(--overlay0);
-      min-width: 18px;
-      padding-top: 2px;
-    }
-
-    .tts-text {
-      font-size: 12px;
-      line-height: 1.6;
-      color: var(--sub);
-    }
-
-    .tts-line.playing .tts-text {
-      color: var(--sapphire) !important;
-    }
-
-    /* ── DETAIL PANELS ── */
-    .details-section {
-      padding: 20px 0;
-      display: none;
-    }
-
-    .details-section.visible {
-      display: block;
-    }
-
-    .details-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
-    }
-
-    .detail-panel {
-      background: rgba(30, 30, 46, .5);
-      border: 1px solid rgba(203, 166, 247, .1);
-      border-radius: var(--radius);
-      overflow: hidden;
-      display: none;
-    }
-
-    .detail-panel.visible {
-      display: block;
-    }
-
-    .collapse-toggle {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 14px 16px;
-      cursor: pointer;
-      background: none;
-      border: none;
-      color: inherit;
-      font-size: 12px;
-      font-family: var(--sans);
-      letter-spacing: .5px;
-      text-transform: uppercase;
-      transition: color .15s;
-      border-bottom: 1px solid var(--surface0);
-    }
-
-    .collapse-toggle:hover {
-      color: var(--mauve);
-    }
-
-    .toggle-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .collapse-body {
-      overflow: hidden;
-      transition: max-height .35s var(--ease), opacity .25s ease;
-      max-height: 1000px;
-      opacity: 1;
-    }
-
-    .collapse-body.collapsed {
-      max-height: 0;
-      opacity: 0;
-    }
-
-    /* epi */
-    .epi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 8px;
-      padding: 14px;
-    }
-
-    .epi-field {
-      background: rgba(30, 30, 46, .7);
-      border: 1px solid rgba(203, 166, 247, .1);
-      border-radius: 8px;
-      padding: 10px 12px;
-    }
-
-    .epi-key {
-      font-family: var(--mono);
-      font-size: 9px;
-      color: var(--overlay0);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-
-    .epi-val {
-      font-size: 12px;
-      color: var(--text);
-    }
-
-    /* router */
-    .router-bars {
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .router-bar-row {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .router-bar-label {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--sub);
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .router-bar-bg {
-      height: 5px;
-      background: var(--surface0);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-
-    .router-bar-fill {
-      height: 100%;
-      border-radius: 3px;
-      background: linear-gradient(90deg, var(--mauve), var(--blue));
-      transition: width .6s var(--ease);
-    }
-
-    /* rag */
-    .rag-panel {
-      grid-column: 1 / -1;
-    }
-
-    .rag-chunks {
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .rag-chunk {
-      background: rgba(30, 30, 46, .8);
-      border: 1px solid rgba(203, 166, 247, .1);
-      border-radius: 8px;
-      padding: 12px 14px;
-    }
-
-    .rag-chunk-header {
-      font-family: var(--mono);
-      font-size: 9px;
-      color: var(--mauve);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-
-    .rag-chunk-text {
-      font-size: 11.5px;
-      color: var(--sub);
-      line-height: 1.65;
-    }
-
-    /* ── HISTORY ── */
-    .history-section {
-      padding: 20px 0 40px;
-    }
-
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 12px 0 4px;
-    }
-
-    .history-empty {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--overlay0);
-      padding: 12px 0;
-      text-align: center;
-    }
-
-    .history-item {
-      background: rgba(30, 30, 46, .5);
-      border: 1px solid rgba(203, 166, 247, .1);
-      border-radius: 8px;
-      padding: 12px 14px;
-      cursor: pointer;
-      transition: border-color .15s;
-    }
-
-    .history-item:hover {
-      border-color: rgba(203, 166, 247, .3);
-    }
-
-    .history-meta {
-      font-family: var(--mono);
-      font-size: 9px;
-      color: var(--overlay0);
-      margin-bottom: 4px;
-    }
-
-    .history-text {
-      font-size: 12px;
-      color: var(--sub);
-      line-height: 1.55;
-    }
-
-    /* ── FOOTER ── */
-    .app-footer {
-      margin-top: auto;
-      padding: 18px 24px;
-      border-top: 1px solid rgba(203, 166, 247, .07);
-      background: var(--mantle);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .footer-copy {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--overlay0);
-      letter-spacing: .5px;
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 16px;
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--overlay0);
-    }
-
-    /* hidden util */
-    .hidden {
-      display: none !important;
-    }
-
-    .visible {
-      display: block;
-    }
-  </style>
 </head>
 
 <body>
 
-  <!-- ── FROSTED NAV ── -->
-  <nav class="app-nav">
-    <div class="app-nav-left">
-      <a href="/" class="nav-back">← Home</a>
-      <div class="nav-logo">
-        <div class="nav-logo-mark">Zx</div>
+  <!-- ── STICKY HEADER ── -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon"
+          style="font-size:18px;font-family:var(--mono);font-weight:700;color:var(--mauve);letter-spacing:-1px;filter:none;">Zx</span>
         <div>
-          <div class="nav-logo-name">ZoonoMoE</div>
-          <div class="nav-logo-sub">Field Assessment · v2.0</div>
+          <div class="logo-name">ZoonoMoE</div>
+          <div class="logo-sub">Voice Zoonotic Surveillance · v2.0</div>
         </div>
       </div>
-    </div>
-    <div class="nav-right">
-      <div class="sys-status">
-        <div class="status-dot" id="statusDot"></div>
-        <span class="status-text" id="statusText">Ready</span>
+      <div class="header-right">
+        <div class="sys-status">
+          <div class="status-dot" id="statusDot"></div>
+          <span class="status-text" id="statusText">Ready</span>
+        </div>
+        <a href="/" class="btn btn-ghost" style="text-decoration:none;">← Home</a>
+        <button class="btn btn-ghost" id="newSessionBtn" onclick="resetSession()">↺ New Session</button>
       </div>
-      <button class="btn btn-ghost" id="newSessionBtn" onclick="resetSession()">↺ New Session</button>
     </div>
-  </nav>
+  </header>
 
   <!-- ── HERO: INPUT ── -->
-  <section class="app-hero">
-    <div class="app-hero-inner">
+  <section class="hero">
+    <div class="hero-inner">
 
-      <div class="hero-heading">
-        <h1>Voice-to-<span>Diagnosis</span></h1>
-        <p>Speak a field report &mdash; get a zoonotic risk assessment in under 20 seconds</p>
-      </div>
-
-      <!-- Mic -->
-      <div class="mic-area" id="micArea">
+      <!-- Mic + waveform -->
+      <div class="hero-mic" id="micArea">
         <button class="mic-btn" id="micBtn" onclick="toggleRecording()">
-          <span class="mic-icon" id="micIcon">🎤</span>
+          <svg class="mic-icon" id="micIcon" width="28" height="28" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="2" width="6" height="12" rx="3" />
+            <path d="M5 10a7 7 0 0 0 14 0" />
+            <line x1="12" y1="19" x2="12" y2="22" />
+            <line x1="8" y1="22" x2="16" y2="22" />
+          </svg>
         </button>
         <canvas class="waveform-canvas" id="waveCanvas" width="220" height="48"></canvas>
         <span class="mic-hint" id="micLabel">Tap to Record</span>
       </div>
 
-      <!-- Text input -->
-      <div class="text-input-wrap">
-        <div class="text-divider">or type a field report</div>
+      <!-- Text input alternative -->
+      <div class="hero-text">
         <textarea id="textInput" rows="3"
-          placeholder="Example: Three chickens died overnight, cyanotic combs, one found convulsing near the pond.&#10;&#10;Describe species · symptoms · mortality count · location · timeframe"></textarea>
-        <button class="btn-analyze" id="analyzeBtn" onclick="analyzeText()">
+          placeholder="Or type your field report here…&#10;Example: Three chickens died overnight, cyanotic combs, one found convulsing near the pond."></textarea>
+        <button class="btn btn-primary" id="analyzeBtn" onclick="analyzeText()">
           Analyze Report →
         </button>
       </div>
@@ -1120,8 +70,7 @@
   <section class="pipeline-section hidden" id="pipelineSection">
     <div class="content-wrap">
       <button class="collapse-toggle" onclick="toggleSection('pipelineBody', this)" aria-expanded="true">
-        <span class="section-header-dot"></span>
-        <span class="toggle-label section-header-label">Pipeline</span>
+        <span class="toggle-label">⚡ Pipeline</span>
         <span class="toggle-chevron">▾</span>
       </button>
       <div class="collapse-body" id="pipelineBody">
@@ -1196,7 +145,7 @@
     <div class="content-wrap">
 
       <div class="assessment-card" id="riskCard">
-        <!-- Header -->
+        <!-- Header row -->
         <div class="assessment-header">
           <div class="assessment-meta">
             <span class="assessment-expert" id="riskExpert">Expert Agent</span>
@@ -1215,12 +164,13 @@
         <!-- Flags -->
         <div class="risk-flags hidden" id="riskFlags"></div>
 
-        <!-- Audio bar -->
+        <!-- Audio bar + TTS script -->
         <div class="audio-bar" id="audioPlayer">
           <span class="audio-icon">🔊</span>
           <span class="audio-label" id="audioLabel">Synthesizing speech…</span>
           <div class="audio-queue" id="audioQueue"></div>
-          <button class="stop-tts-btn" id="stopTtsBtn" onclick="stopTTS()" title="Stop speech">■ Stop</button>
+          <button class="stop-tts-btn" id="stopTtsBtn" onclick="stopTTS()" title="Pause / Resume speech">⏸
+            Pause</button>
         </div>
 
         <!-- TTS Script collapsible -->
@@ -1239,7 +189,7 @@
     </div>
   </section>
 
-  <!-- ── DETAIL PANELS ── -->
+  <!-- ── DETAIL PANELS (collapsible) ── -->
   <section class="details-section hidden" id="detailsSection">
     <div class="content-wrap details-grid">
 
@@ -1285,25 +235,22 @@
   <section class="history-section">
     <div class="content-wrap">
       <button class="collapse-toggle" onclick="toggleSection('historyBody', this)" aria-expanded="false" data-collapsed>
-        <span class="section-header-dot"></span>
-        <span class="toggle-label section-header-label">Session History</span>
+        <span class="toggle-label">🕐 Session History</span>
         <span class="toggle-chevron">▸</span>
       </button>
       <div class="collapse-body collapsed" id="historyBody">
         <div class="history-list" id="historyList">
-          <div class="history-empty">No reports yet — record or type a field report above.</div>
+          <div class="history-empty">No reports yet. Record or type a field report above.</div>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ── FOOTER ── -->
-  <footer class="app-footer">
-    <span class="footer-copy">ZoonoMoE v2.0 · MLX · Qwen3 · Kokoro · FAISS</span>
-    <div class="footer-links">
-      <span>DLD Emergency: 02-653-4444</span>
-      <span>·</span>
-      <span>DDC Hotline: 1422</span>
+  <footer class="footer">
+    <div class="content-wrap footer-inner">
+      <span class="footer-copy">ZoonoMoE · AI-powered field surveillance</span>
+      <span class="footer-copy">DLD Emergency: 02-653-4444 &nbsp;·&nbsp; DDC Hotline: 1422</span>
     </div>
   </footer>
 

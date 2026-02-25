@@ -14,7 +14,7 @@ Author: ZoonoticSense Team
 
 import os, re, json, base64, tempfile, threading, time, queue, logging, subprocess
 from pathlib import Path
-from flask import Flask, request, jsonify, Response, render_template, stream_with_context
+from flask import Flask, request, jsonify, Response, render_template, stream_with_context, send_from_directory
 import numpy as np
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
@@ -311,11 +311,15 @@ def stream_expert_response(domain: str, epi_fields: dict, rag_chunks: list):
 #  RISK PARSER  (extract structured risk card from LLM output)
 # ═══════════════════════════════════════════════════════════════════════════
 
-def parse_risk_level(text: str) -> str:
-    """Extract risk level keyword from LLM response."""
-    text_upper = text.upper()
+def parse_risk_level(text: str, is_chat: bool = False) -> str:
+    """Extract risk level keyword from LLM response.
+    Uses word-boundary regex so 'highly' / 'highlight' won't false-match 'HIGH'.
+    Returns 'NONE' for chat/off-topic responses.
+    """
+    if is_chat:
+        return "NONE"
     for level in ["CRITICAL", "HIGH", "MEDIUM", "LOW"]:
-        if level in text_upper:
+        if re.search(rf'\b{level}\b', text, re.IGNORECASE):
             return level
     return "UNKNOWN"
 
@@ -412,6 +416,13 @@ session_state = {
 }
 
 
+@app.route('/favicon.ico')
+@app.route('/favicon.svg')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.svg', mimetype='image/svg+xml')
+
+
 @app.route('/')
 def landing():
     return render_template('landing.html')
@@ -451,6 +462,34 @@ def upload():
             result = asr_model.transcribe(wav_path)
         transcript = result["text"].strip()
         asr_time   = round(time.time() - t0, 2)
+
+        # ── Whisper hallucination guard ────────────────────────────────────
+        # Whisper sometimes loops a single syllable/word when audio is noisy.
+        # Detect: any token repeating > 6 consecutive times, OR
+        #         top-3 unique words cover > 80% of total words.
+        words = transcript.lower().split()
+        is_hallucination = False
+        if len(words) > 10:
+            # Check consecutive repeats
+            max_run = 1; cur_run = 1
+            for i in range(1, len(words)):
+                if words[i] == words[i - 1]:
+                    cur_run += 1; max_run = max(max_run, cur_run)
+                else:
+                    cur_run = 1
+            if max_run > 6:
+                is_hallucination = True
+            # Check top-word coverage
+            if not is_hallucination:
+                from collections import Counter
+                top3 = sum(v for _, v in Counter(words).most_common(3))
+                if top3 / len(words) > 0.80:
+                    is_hallucination = True
+
+        if is_hallucination:
+            log.warning(f"ASR hallucination detected ({asr_time}s), discarding transcript.")
+            return jsonify({"error": "Audio unclear — please record again in a quieter environment."}), 422
+
         log.info(f"ASR ({asr_time}s): {transcript}")
 
         return jsonify({
@@ -562,8 +601,9 @@ def stream():
                     yield f"data: {json.dumps({'type': 'audio', 'data': audio_b64, 'idx': audio_sent, 'sentence': sentence})}\n\n"
 
         # After full generation — parse risk card
-        risk_level   = parse_risk_level(full_text)
-        report_flag  = parse_report_flag(full_text)
+        is_chat      = data.get("epi_fields", {}).get("_off_topic", False)
+        risk_level   = parse_risk_level(full_text, is_chat=is_chat)
+        report_flag  = parse_report_flag(full_text) if not is_chat else False
         expert_name  = DOMAIN_EXPERTS.get(domain, DOMAIN_EXPERTS["general"])["name"]
 
         risk_card = {
@@ -572,6 +612,7 @@ def stream():
             "domain":        domain,
             "expert_name":   expert_name,
             "full_response": full_text.strip(),
+            "is_chat":       bool(is_chat),
         }
 
         # Append to session history

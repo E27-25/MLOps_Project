@@ -1,5 +1,3 @@
-{"text": "Pigs showing respiratory distress and barking cough near bat habitat", "domain": "nipah_hendra"}
-{"text": "Cattle with blisters on feet and mouth after market visit", "domain": "fmd"}
 {"text": "chickens found dead overnight with cyanotic combs near the pond", "domain": "avian_flu"}
 {"text": "poultry dying with neurological symptoms convulsing near water", "domain": "avian_flu"}
 {"text": "three chickens died with blue combs and one was convulsing", "domain": "avian_flu"}
@@ -9,31 +7,29 @@
 {"text": "turkeys dead with swollen heads and cyanosis on comb and wattle", "domain": "avian_flu"}
 {"text": "chickens stopped laying eggs and five died with ruffled feathers and twisted necks", "domain": "avian_flu"}
 {"text": "wild waterfowl dead near rice field edge with bloody discharge and neurological signs", "domain": "avian_flu"}
-{"text": "dog biting people repeatedly with excessive drooling and red eyes", "domain": "rabies"}
-{"text": "cat acting aggressively and foaming at the mouth without provocation", "domain": "rabies"}
-{"text": "dog became aggressive suddenly staggering with jaw dropped and drooling", "domain": "rabies"}
-{"text": "person bitten by stray dog that was acting strangely and running in circles", "domain": "rabies"}
-{"text": "dog fell suddenly paralyzed after being aggressive and losing its bark", "domain": "rabies"}
-{"text": "monkey bit a tourist and disappeared into the forest, monkey was acting erratic", "domain": "rabies"}
-{"text": "puppy biting family members unprovoked drooling excessively and died within days", "domain": "rabies"}
+{"text": "about 30 of my chickens died this morning with dark purple combs and labored breathing", "domain": "avian_flu"}
+{"text": "poultry farm near Chiang Rai lost 50 birds overnight, swollen heads and bloody diarrhea", "domain": "avian_flu"}
+{"text": "geese dying with twisted necks and cannot walk, cyanotic wattles, found near the river", "domain": "avian_flu"}
+{"text": "village chickens dying suddenly, combs turning blue, some convulsing before death", "domain": "avian_flu"}
+{"text": "duck mortality spike after migrating birds landed near our pond, green diarrhea, twisted necks", "domain": "avian_flu"}
+{"text": "backyard flock all dead within 24 hours, nasal discharge, hemorrhage around the eyes", "domain": "avian_flu"}
+{"text": "farmer reported 20 dead laying hens with swollen sinuses, bloody mucus, and dark combs", "domain": "avian_flu"}
+{"text": "cock fighting birds dying with neurological twitching and swollen heads after a tournament", "domain": "avian_flu"}
+{"text": "Cattle with blisters on feet and mouth after market visit", "domain": "fmd"}
 {"text": "cow has painful blisters on tongue and lips limping badly cannot eat", "domain": "fmd"}
 {"text": "buffalo limping with sores on feet and clear fluid vesicles between hooves", "domain": "fmd"}
 {"text": "pig with large blisters on snout and feet refusing to stand up squealing in pain", "domain": "fmd"}
 {"text": "goats and sheep with mouth ulcers and lameness after market contact", "domain": "fmd"}
 {"text": "cattle milk dropped 60 percent suddenly with sores on teats and tongue ulcers", "domain": "fmd"}
 {"text": "young calves dying with heart failure after lame cattle were observed with mouth blisters", "domain": "fmd"}
-{"text": "pigs showing barking cough trembling and losing balance near fruit bat trees", "domain": "nipah_hendra"}
-{"text": "pig farm workers developed fever and confusion after pigs showed respiratory and neurological signs", "domain": "nipah_hendra"}
-{"text": "horse with severe respiratory distress frothy nasal discharge and facial muscle twitching in Australia", "domain": "nipah_hendra"}
-{"text": "whole pig herd developed breathing difficulty and rear leg weakness near Pteropus bat colony", "domain": "nipah_hendra"}
-{"text": "bats found near pig farm and piglets dying with convulsions and high mortality rate", "domain": "nipah_hendra"}
-{"text": "cattle aborting multiple times with brown urine and yellow eyes near flooded field", "domain": "leptospirosis"}
-{"text": "dairy herd sudden milk drop with dark bloody urine and jaundice after heavy rain", "domain": "leptospirosis"}
-{"text": "dogs vomiting with jaundice and not urinating after playing in flood water", "domain": "leptospirosis"}
-{"text": "rice farmers with high fever severe leg muscle pain and red eyes after wading in paddy field", "domain": "leptospirosis"}
-{"text": "cattle abortion storm three cows aborted in one week after flooding in the farm", "domain": "leptospirosis"}
-{"text": "flood workers developed fever and red eyes after clearing rubbish in stagnant water", "domain": "leptospirosis"}
-{"text": "pig farm with multiple sows aborting weak litters after flooding season near rat-infested area", "domain": "leptospirosis"}
+{"text": "whole cattle herd is limping, blisters burst on tongue, cannot eat and losing weight fast", "domain": "fmd"}
+{"text": "swine farm outbreak, pigs have vesicles on snout and feet, five died in two days", "domain": "fmd"}
+{"text": "water buffalo with ruptured blisters between toes, severe lameness, refusing to move", "domain": "fmd"}
+{"text": "goat herd all drooling excessively with mouth sores, three animals collapsed", "domain": "fmd"}
+{"text": "cattle trader reported animals he bought at market are developing foot blisters and salivating", "domain": "fmd"}
+{"text": "sheep limping severely with lesions on the coronary band and around the mouth, not eating", "domain": "fmd"}
+{"text": "dairy cows lost appetite and milk production, found blisters on teats and tongue the next day", "domain": "fmd"}
+{"text": "deer in zoo showing lameness and mouth lesions after new animals were introduced", "domain": "fmd"}
 {"text": "hello I want to know about animal disease in general", "domain": "general"}
 {"text": "how do I protect myself from zoonotic diseases working with livestock", "domain": "general"}
 {"text": "what should I do when I find a dead animal on my property", "domain": "general"}
@@ -41,3 +37,64 @@
 {"text": "general question about animal health in farming", "domain": "general"}
 {"text": "who do I call if I suspect a disease outbreak in my village", "domain": "general"}
 {"text": "I want to report an unusual illness in my farm animals but not sure what it is", "domain": "general"}
+{"text": "found a dead bird near my house, should I be worried", "domain": "general"}
+{"text": "my animals seem sick but I do not know what the disease is", "domain": "general"}
+{"text": "unusual deaths on my farm, not sure which animal disease this could be", "domain": "general"}
+{"text": "how do I collect samples from a dead animal for disease testing", "domain": "general"}
+{"text": "several bats found dead near the fruit orchard, not sure if dangerous", "domain": "general"}
+{"text": "wild monkeys came near the village and now some children have fever", "domain": "general"}
+{"text": "I bought new animals from the market and now all my old animals seem sick too", "domain": "general"}
+{"text": "strange disease killing both my chickens and my ducks, not sure what it is", "domain": "general"}
+{"text": "cattle aborting multiple times with brown urine and yellow eyes near flooded field", "domain": "leptospirosis"}
+{"text": "dairy herd sudden milk drop with dark bloody urine and jaundice after heavy rain", "domain": "leptospirosis"}
+{"text": "dogs vomiting with jaundice and not urinating after playing in flood water", "domain": "leptospirosis"}
+{"text": "rice farmers with high fever severe leg muscle pain and red eyes after wading in paddy field", "domain": "leptospirosis"}
+{"text": "cattle abortion storm three cows aborted in one week after flooding in the farm", "domain": "leptospirosis"}
+{"text": "flood workers developed fever and red eyes after clearing rubbish in stagnant water", "domain": "leptospirosis"}
+{"text": "pig farm with multiple sows aborting weak litters after flooding season near rat-infested area", "domain": "leptospirosis"}
+{"text": "five farmers have fever, severe muscle aches, and yellow eyes after harvesting in flooded rice fields", "domain": "leptospirosis"}
+{"text": "dairy cattle in low-lying area have bloody urine and are aborting after recent monsoon flooding", "domain": "leptospirosis"}
+{"text": "construction worker clearing flood zone developed high fever, headache, red eyes, and cannot urinate", "domain": "leptospirosis"}
+{"text": "dog rescue worker handling flood water is now jaundiced with kidney failure symptoms", "domain": "leptospirosis"}
+{"text": "cattle herd near the river has weak newborn calves and multiple abortions after seasonal flood", "domain": "leptospirosis"}
+{"text": "sewer workers in Bangkok all sick with fever eye redness and muscle pain after heavy rainfall", "domain": "leptospirosis"}
+{"text": "pig farm workers found ill with yellow skin and dark urine after rats were seen swimming in the yard", "domain": "leptospirosis"}
+{"text": "triathlete who swam in the river has kidney failure, jaundice, and severe muscle pain", "domain": "leptospirosis"}
+{"text": "farm dogs all died with black tarry stools and yellow eyes after a flood event", "domain": "leptospirosis"}
+{"text": "Pigs showing respiratory distress and barking cough near bat habitat", "domain": "nipah_hendra"}
+{"text": "pigs showing barking cough trembling and losing balance near fruit bat trees", "domain": "nipah_hendra"}
+{"text": "pig farm workers developed fever and confusion after pigs showed respiratory and neurological signs", "domain": "nipah_hendra"}
+{"text": "horse with severe respiratory distress frothy nasal discharge and facial muscle twitching in Australia", "domain": "nipah_hendra"}
+{"text": "whole pig herd developed breathing difficulty and rear leg weakness near Pteropus bat colony", "domain": "nipah_hendra"}
+{"text": "bats found near pig farm and piglets dying with convulsions and high mortality rate", "domain": "nipah_hendra"}
+{"text": "pig farmer and two workers have encephalitis fever and altered consciousness after pigs died suddenly", "domain": "nipah_hendra"}
+{"text": "I am a pig farmer, pigs have sudden fever and cannot breathe, one worker now has severe headache and delirium", "domain": "nipah_hendra"}
+{"text": "fruit bats roosting in our pig barn, 10 pigs died, two farmhands have high fever and are confused", "domain": "nipah_hendra"}
+{"text": "pigs with neurological signs near mango fruit bat trees, slaughterhouse workers now have brain inflammation", "domain": "nipah_hendra"}
+{"text": "pig farm outbreak near Kanchanaburi, rapid herd mortality, three people who contacted pigs are hospitalized", "domain": "nipah_hendra"}
+{"text": "horses with sudden breathing difficulty and frothy nose discharge, rider who inhaled secretions now has fever", "domain": "nipah_hendra"}
+{"text": "cluster of encephalitis cases in workers near pig farms, bats observed in the area, two in ICU", "domain": "nipah_hendra"}
+{"text": "pig sow and piglets dying from convulsions within 24 hours, farm is near durian orchard with bat activity", "domain": "nipah_hendra"}
+{"text": "veterinarian who visited a dying pig herd developed fever and brain swelling after the farm visit", "domain": "nipah_hendra"}
+{"text": "high pig mortality with respiratory distress and barking sounds, farm adjacent to bat cave", "domain": "nipah_hendra"}
+{"text": "multiple pig deaths with neurological symptoms in one week, workers handling carcasses now febrile and confused", "domain": "nipah_hendra"}
+{"text": "abattoir workers who slaughtered sick pigs now have headache vomiting and loss of consciousness", "domain": "nipah_hendra"}
+{"text": "pigs dying with muscle twitching and breathing problems, three humans who touched them are seizuring", "domain": "nipah_hendra"}
+{"text": "unusual pig deaths near fruit orchard, human contacts have encephalitis-like symptoms with rapid progression", "domain": "nipah_hendra"}
+{"text": "dog biting people repeatedly with excessive drooling and red eyes", "domain": "rabies"}
+{"text": "cat acting aggressively and foaming at the mouth without provocation", "domain": "rabies"}
+{"text": "dog became aggressive suddenly staggering with jaw dropped and drooling", "domain": "rabies"}
+{"text": "person bitten by stray dog that was acting strangely and running in circles", "domain": "rabies"}
+{"text": "dog fell suddenly paralyzed after being aggressive and losing its bark", "domain": "rabies"}
+{"text": "monkey bit a tourist and disappeared into the forest, monkey was acting erratic", "domain": "rabies"}
+{"text": "puppy biting family members unprovoked drooling excessively and died within days", "domain": "rabies"}
+{"text": "stray dog wandered into school biting three children before it was caught, dog was foaming", "domain": "rabies"}
+{"text": "farmer bitten by their own dog which suddenly turned aggressive and has been drooling for two days", "domain": "rabies"}
+{"text": "child bitten by a cat that had been hiding and acting scared for a week before biting", "domain": "rabies"}
+{"text": "dog owner reports the dog cannot drink water and is very aggressive, jaw is hanging open", "domain": "rabies"}
+{"text": "person scratched by a bat in a cave, bat was flying erratically in daytime", "domain": "rabies"}
+{"text": "village dog attacked multiple people over 30 minutes, finally collapsed, unable to walk", "domain": "rabies"}
+{"text": "fox in the village acting friendly and approaching people in daylight, bit two farmers", "domain": "rabies"}
+{"text": "dog died after three days of excessive salivation and inability to swallow food or water", "domain": "rabies"}
+{"text": "temple dog attacked monk unprovoked, drooling heavily and making abnormal sounds", "domain": "rabies"}
+{"text": "two dogs in village died with progressive paralysis and hypersalivation within one week of biting people", "domain": "rabies"}

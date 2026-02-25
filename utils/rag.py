@@ -62,8 +62,19 @@ class SimpleVectorStore:
 
     @classmethod
     def load(cls, path: Path) -> 'SimpleVectorStore':
+        """Load index with compat unpickler — works regardless of which
+        module context (``__main__`` or ``utils.rag``) the index was saved from."""
+        import io
+
+        class _CompatUnpickler(pickle.Unpickler):
+            def find_class(self, module, name):
+                # Accept SimpleVectorStore no matter which module it was pickled from
+                if name == 'SimpleVectorStore':
+                    return SimpleVectorStore
+                return super().find_class(module, name)
+
         with open(path, 'rb') as f:
-            return pickle.load(f)
+            return _CompatUnpickler(f).load()
 
 
 # ─── Domain RAG manager ────────────────────────────────────────────────────

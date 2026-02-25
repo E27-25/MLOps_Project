@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZoonoMoE — Frictionless Zoonotic Surveillance</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <meta name="description"
         content="ZoonoMoE — Frictionless zoonotic surveillance, routed at the edge. On-device, real-time, voice-first.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -262,6 +263,7 @@
 
         /* Title */
         .hero-title {
+            text-align: left;
             font-size: clamp(42px, 7.5vw, 96px);
             font-weight: 800;
             letter-spacing: -3px;
@@ -777,12 +779,12 @@
 
         <!-- ── NAV ── -->
         <nav id="nav">
-            <a href="/" class="nav-logo">
+            <div class="nav-logo">
                 <div class="nav-logo-icon"
                     style="font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:-1px;color:#0d0d1a;">Zx
                 </div>
                 <span class="nav-logo-name">ZoonoMoE</span>
-            </a>
+            </div>
             <div class="nav-right">
                 <span class="nav-pill">● ONLINE</span>
                 <a href="https://github.com/E27-25/MLOps_Project" target="_blank" class="nav-link">Docs</a>
@@ -800,7 +802,8 @@
 
             <h1 class="hero-title">
                 Hear the symptoms.<br>
-                <span class="line2">Assess locally.<br>Contain globally.</span>
+                <span class="line2">Assess locally.<br>
+                    Contain globally.</span>
             </h1>
 
             <!-- typewriter caption -->
@@ -974,11 +977,7 @@
         <!-- ── FOOTER ── -->
         <footer>
             <span>ZoonoMoE v2.0 · MLX · Qwen3 · Kokoro · FAISS</span>
-            <span>
-                <a href="https://github.com/E27-25/MLOps_Project" target="_blank">GitHub</a>
-                &nbsp;·&nbsp;
-                <a href="/app">App</a>
-            </span>
+            <span>GitHub &nbsp;·&nbsp; MLOps Project</span>
         </footer>
 
     </div><!-- .page -->
@@ -1019,44 +1018,75 @@
 
             function rnd(a, b) { return a + Math.random() * (b - a); }
 
-            // ── Particle class ───────────────────────────────────────────────────────
+            // ── Particle class — ORBITAL / CIRCLING-STARS motion ────────────────
             class Particle {
-                constructor() { this.init(true); }
+                constructor() { this.init(false); }
 
                 init(scatter) {
                     const t = pick();
                     this.shape = t.shape;
                     this.col = t.color;
                     this.r = t.r * rnd(0.7, 1.6);
-                    this.home = { x: rnd(20, canvas.width - 20), y: rnd(20, canvas.height - 20) };
-                    this.x = scatter ? rnd(0, canvas.width) : this.home.x;
-                    this.y = scatter ? rnd(0, canvas.height) : this.home.y;
-                    this.vx = rnd(-0.25, 0.25);
-                    this.vy = rnd(-0.25, 0.25);
-                    this.base = rnd(0.15, 0.6);
+
+                    // ── Orbital parameters ──────────────────────────────────
+                    // Each particle has a fixed orbit centre (cx, cy),
+                    // semi-axes (ra, rb), tilt (tilt), and angular speed (spd).
+                    const W = canvas.width, H = canvas.height;
+                    this.cx = rnd(W * 0.1, W * 0.9);   // orbit centre x
+                    this.cy = rnd(H * 0.1, H * 0.9);   // orbit centre y
+                    this.ra = rnd(30, Math.min(W, H) * 0.22);  // semi-major
+                    this.rb = this.ra * rnd(0.35, 0.85);       // semi-minor
+                    this.tilt = rnd(0, Math.PI * 2);      // orbit plane rotation
+                    this.spd = rnd(0.003, 0.012) * (Math.random() < 0.5 ? 1 : -1); // CW or CCW
+                    this.theta = rnd(0, Math.PI * 2);     // current angle on orbit
+
+                    // Compute initial position from orbit
+                    const cx0 = this.cx + Math.cos(this.tilt) * this.ra * Math.cos(this.theta)
+                        - Math.sin(this.tilt) * this.rb * Math.sin(this.theta);
+                    const cy0 = this.cy + Math.sin(this.tilt) * this.ra * Math.cos(this.theta)
+                        + Math.cos(this.tilt) * this.rb * Math.sin(this.theta);
+                    this.x = scatter ? rnd(0, W) : cx0;
+                    this.y = scatter ? rnd(0, H) : cy0;
+                    // Velocity for blending during cursor interaction
+                    this.vx = 0; this.vy = 0;
+                    // Disruption: how far from orbit the particle is pushed
+                    this.disrupted = 0;   // 0 = on orbit, 1 = fully disrupted
+
+                    this.base = rnd(0.2, 0.7);
                     this.op = this.base;
-                    this.targetOp = this.base;
-                    this.angle = rnd(0, Math.PI * 2);
-                    this.spin = rnd(-0.006, 0.006);
+                    this.angle = rnd(0, Math.PI * 2);   // self-rotation for draw
+                    this.spin = rnd(-0.012, 0.012);
                     this.scale = 1; this.tScale = 1;
                     this.twinkle = rnd(0, Math.PI * 2);
-                    this.twinkleSpeed = rnd(0.012, 0.03);
+                    this.twinkleSpeed = rnd(0.008, 0.025);
                 }
 
                 update() {
                     const W = canvas.width, H = canvas.height;
-                    this.vx += (this.home.x - this.x) * 0.0007;
-                    this.vy += (this.home.y - this.y) * 0.0007;
+
+                    // ── Advance orbital angle ───────────────────────────────
+                    this.theta += this.spd;
+
+                    // Target position on the ellipse
+                    const tx = this.cx + Math.cos(this.tilt) * this.ra * Math.cos(this.theta)
+                        - Math.sin(this.tilt) * this.rb * Math.sin(this.theta);
+                    const ty = this.cy + Math.sin(this.tilt) * this.ra * Math.cos(this.theta)
+                        + Math.cos(this.tilt) * this.rb * Math.sin(this.theta);
+
+                    // ── Cursor repulsion ────────────────────────────────────
                     const dx = this.x - mouse.x;
                     const dy = this.y - mouse.y;
                     const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-                    const RR = mouse.down ? 180 : 100;
-                    const RS = mouse.down ? 10 : 4;
+                    const RR = mouse.down ? 180 : 110;
+                    const RS = mouse.down ? 9 : 3.5;
                     if (dist < RR) {
                         const str = (1 - dist / RR) * RS;
                         this.vx += (dx / dist) * str;
                         this.vy += (dy / dist) * str;
+                        this.disrupted = Math.min(1, this.disrupted + 0.15);
                     }
+
+                    // ── Click blast ─────────────────────────────────────────
                     if (mouse.clicked) {
                         const cdx = this.x - mouse.cx, cdy = this.y - mouse.cy;
                         const cd = Math.sqrt(cdx * cdx + cdy * cdy) || 1;
@@ -1064,21 +1094,45 @@
                             const f = (1 - cd / 320) * 28;
                             this.vx += (cdx / cd) * f;
                             this.vy += (cdy / cd) * f;
+                            this.disrupted = 1;
                         }
                     }
-                    this.vx *= 0.92; this.vy *= 0.92;
+
+                    // ── Blend: orbit pull vs inertia ────────────────────────
+                    // Recover toward orbit smoothly
+                    this.disrupted *= 0.96;
+                    const orbitBlend = 1 - this.disrupted;  // 0 = pure inertia, 1 = pure orbit
+                    const pullStr = 0.04 + orbitBlend * 0.08;
+                    this.vx += (tx - this.x) * pullStr;
+                    this.vy += (ty - this.y) * pullStr;
+
+                    // Dampen velocity
+                    const damp = 0.78 + orbitBlend * 0.14;  // more damping when recovered
+                    this.vx *= damp; this.vy *= damp;
                     this.x += this.vx; this.y += this.vy;
                     this.angle += this.spin;
-                    if (this.x < this.r) { this.x = this.r; this.vx = Math.abs(this.vx) * 0.5; }
-                    if (this.x > W - this.r) { this.x = W - this.r; this.vx = -Math.abs(this.vx) * 0.5; }
-                    if (this.y < this.r) { this.y = this.r; this.vy = Math.abs(this.vy) * 0.5; }
-                    if (this.y > H - this.r) { this.y = H - this.r; this.vy = -Math.abs(this.vy) * 0.5; }
-                    // twinkle opacity
+
+                    // Soft wall bounce (only when disrupted)
+                    if (this.disrupted > 0.1) {
+                        if (this.x < this.r) { this.x = this.r; this.vx = Math.abs(this.vx) * 0.35; }
+                        if (this.x > W - this.r) { this.x = W - this.r; this.vx = -Math.abs(this.vx) * 0.35; }
+                        if (this.y < this.r) { this.y = this.r; this.vy = Math.abs(this.vy) * 0.35; }
+                        if (this.y > H - this.r) { this.y = H - this.r; this.vy = -Math.abs(this.vy) * 0.35; }
+                    }
+
+                    // ── Re-centre orbit if drifted too far ──────────────────
+                    if (this.cx < 0 || this.cx > W || this.cy < 0 || this.cy > H) {
+                        this.cx = rnd(W * 0.1, W * 0.9);
+                        this.cy = rnd(H * 0.1, H * 0.9);
+                    }
+
+                    // ── Twinkle opacity ─────────────────────────────────────
                     this.twinkle += this.twinkleSpeed;
-                    this.targetOp = this.base * (0.7 + (Math.sin(this.twinkle) * 0.5 + 0.5) * 0.5);
-                    this.op += (this.targetOp - this.op) * 0.08;
-                    // scale near cursor
-                    this.tScale = dist < 70 ? 1 + (1 - dist / 70) * 0.8 : 1;
+                    const targetOp = this.base * (0.6 + (Math.sin(this.twinkle) * 0.5 + 0.5) * 0.55);
+                    this.op += (targetOp - this.op) * 0.07;
+
+                    // ── Scale near cursor ───────────────────────────────────
+                    this.tScale = dist < 70 ? 1 + (1 - dist / 70) * 0.9 : 1;
                     this.scale += (this.tScale - this.scale) * 0.14;
                 }
 
@@ -1335,15 +1389,18 @@
         // ══ TYPEWRITER ═══════════════════════════════════════════════════════════
         (function () {
             const el = document.getElementById('typewriter');
+            // Phrases kept concise so they fit ≤ 2 lines at all viewports.
+            // Rule: if the 2nd line would have < 3 words, keep as single line.
             const PHRASES = [
                 'Frictionless zoonotic surveillance, routed at the edge.',
-                'Transforming unstructured frontline voice reports into actionable veterinary intelligence in under 20 seconds.',
-                'An entirely on-device pipeline leveraging MoE architecture to route acoustic field data to domain-expert LLMs.',
+                'Voice to risk assessment — on-device, under 20 seconds.',
+                'MoE routing sends each field report to the right domain expert.',
+                'No cloud. No latency. Full zoonotic intelligence on your hardware.',
             ];
-            let pi = 0, ci = 0; // phrase index, char index
+            let pi = 0, ci = 0;
             const s = document.createElement('style');
             s.textContent = `
-                #typewriter { font-family: var(--mono); font-size: 0.95rem;
+                #typewriter { font-family: var(--mono); font-size: 0.93rem;
                     color: var(--sub); letter-spacing: 0.3px; }
                 .tw-cursor { font-family: var(--mono); color: var(--mauve);
                     opacity: 1; animation: twBlink 1.1s step-end infinite; }
@@ -1354,19 +1411,18 @@
                 const text = PHRASES[pi];
                 if (ci <= text.length) {
                     el.textContent = text.slice(0, ci++);
-                    setTimeout(type, ci === 1 ? 500 : 32);
+                    setTimeout(type, ci === 1 ? 480 : 30);
                 } else {
-                    setTimeout(erase, 3500); // hold the full phrase 3.5s
+                    setTimeout(erase, 3200);
                 }
             }
             function erase() {
-                const text = PHRASES[pi];
                 if (ci > 0) {
-                    el.textContent = text.slice(0, --ci);
-                    setTimeout(erase, 14); // erase quicker
+                    el.textContent = PHRASES[pi].slice(0, --ci);
+                    setTimeout(erase, 12);
                 } else {
-                    pi = (pi + 1) % PHRASES.length; // advance to next phrase
-                    setTimeout(type, 600);
+                    pi = (pi + 1) % PHRASES.length;
+                    setTimeout(type, 550);
                 }
             }
             setTimeout(type, 900);
