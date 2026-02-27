@@ -279,6 +279,6 @@ MLOps_Project/
 
 <div align="center">
 
-*Built for MLOps coursework · Chulalongkorn University · 2026*
+*Built for MLOps coursework · KMITL · 2026*
 
 </div>
