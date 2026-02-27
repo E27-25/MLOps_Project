@@ -53,6 +53,10 @@ function setStatus(text, mode = 'ready') {
   dot.className = 'status-dot';
   if (mode === 'busy') dot.classList.add('busy');
   if (mode === 'error') dot.classList.add('error');
+
+  // Running-animal animation — on while busy
+  const ps = document.getElementById('pipelineSection');
+  if (ps) ps.classList.toggle('running', mode === 'busy');
 }
 
 // ── Canvas waveform ─────────────────────────────────────────────────────────

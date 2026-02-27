@@ -106,7 +106,7 @@ else:
 print(f"      ✓ LLM ready [{LLM_BACKEND}]")
 
 # ── 6. TTS (Kokoro) ─────────────────────────────────────────────────────────
-print("\n[6/?] Kokoro TTS...")
+print("\n[6/6] Kokoro TTS...")
 from kokoro import KPipeline
 import soundfile as sf
 tts_pipe = KPipeline(lang_code='a')
