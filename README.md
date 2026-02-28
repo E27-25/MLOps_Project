@@ -334,6 +334,7 @@ python3 scripts/discord_logger.py
 | TTS | [Kokoro-82M](https://github.com/hexgrad/kokoro) |
 | Backend | Flask 3.x + SSE streaming |
 | Frontend | Vanilla JS · Canvas API · Web Audio API |
+| Experiment Tracking | [discordflow](https://github.com/E27-25/discordflow) — team-built Discord Forum ML logger |
 
 ---
 
