@@ -224,6 +224,10 @@ MLOps_Project/
 │   ├── landing.html              # Landing page (orbital particle canvas)
 │   └── index.html                # Main app UI
 │
+├── scripts/
+│   ├── discord_logger.py         # Forum-mode pipeline + retrain logger
+│   └── evaluate.py               # Router evaluation script
+│
 └── utils/
     └── rag.py                    # RAG retrieval + compat unpickler
 ```
@@ -239,6 +243,62 @@ MLOps_Project/
 | `WHISPER_SIZE` | `base` | `tiny` · `base` · `small` · `medium` |
 | `PORT` | `7860` | Server port |
 | `DEBUG` | `0` | Flask debug mode |
+| `DISCORD_WEBHOOK` | _(empty)_ | Discord Forum webhook URL for pipeline logging |
+
+---
+
+## 🐳 Docker Deployment
+
+> For cloud / Linux servers. Mac M-series users should run natively — Docker won't use MLX/GPU.
+
+```bash
+# Build and start
+docker compose up --build
+
+# With Discord logging enabled
+DISCORD_WEBHOOK="https://discord.com/api/webhooks/..." docker compose up --build
+```
+
+Persisted volumes (survive container restarts):
+
+| Volume | Purpose |
+|---|---|
+| `./knowledge_base` | RAG FAISS indexes |
+| `./models` | Trained MLP router |
+| `./data` | Router training data |
+| `./scripts` | Logger + evaluation scripts |
+
+The container automatically health-checks `GET /health` every 30 s with a 60 s grace period for model loading.
+
+---
+
+## 📡 Discord Pipeline Logging
+
+Every inference run can be logged to a **Discord Forum channel** as its own thread.
+
+```bash
+pip install "discordflow[system]"
+export DISCORD_WEBHOOK="https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN"
+python3 app.py
+```
+
+Each Forum thread contains:
+
+| Stage | Logged data |
+|---|---|
+| ASR | Backend, model size, latency, transcript attachment |
+| NER | All 8 extracted fields |
+| Router | Domain, confidence, all 6 domain scores |
+| RAG | Chunks count, latency, `rag_sources.txt` attachment |
+| LLM | Risk level, report flag, `llm_assessment.txt` attachment |
+| TTS | Audio chunks, latency |
+| Summary | Total latency + CPU/RAM system metrics |
+
+Test without a real webhook (dry-run prints to stdout):
+
+```bash
+python3 scripts/discord_logger.py
+```
 
 ---
 

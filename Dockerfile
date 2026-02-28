@@ -1,19 +1,23 @@
-# ZoonoticSense Dockerfile
-# For cloud/Linux deployment (CPU inference with smaller model)
-# Mac M-series users: run natively (MLX provides GPU acceleration)
+# ZoonoMoE Dockerfile
+# Cloud / Linux deployment — CPU inference with OpenAI Whisper fallback.
+# Mac M-series users: run natively (MLX gives GPU acceleration, Docker won't).
 
 FROM python:3.11-slim
 
-# System dependencies
-RUN apt-get update && apt-get install -y \
+# ── System dependencies ────────────────────────────────────────────────────────
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
+    curl \
     git \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Python dependencies (CPU-only stack)
-COPY requirements.txt .
+# ── Python dependencies ────────────────────────────────────────────────────────
+# Install CPU-only PyTorch first so it doesn't pull the CUDA wheel
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+
+# Core pipeline packages
 RUN pip install --no-cache-dir \
     flask \
     openai-whisper \
@@ -24,23 +28,37 @@ RUN pip install --no-cache-dir \
     numpy \
     kokoro \
     soundfile \
-    torch --index-url https://download.pytorch.org/whl/cpu
+    faiss-cpu
 
-# Copy application
+# Discord logging (optional — only active when DISCORD_WEBHOOK is set)
+RUN pip install --no-cache-dir "discordflow[system]"
+
+# ── Copy application ───────────────────────────────────────────────────────────
 COPY . .
 
-# Create model and knowledge base directories
-RUN mkdir -p models knowledge_base/{avian_flu,rabies,fmd,nipah_hendra,leptospirosis,general}/raw
+# ── Ensure required directories exist ─────────────────────────────────────────
+RUN mkdir -p \
+    models \
+    knowledge_base/avian_flu/raw \
+    knowledge_base/rabies/raw \
+    knowledge_base/fmd/raw \
+    knowledge_base/nipah_hendra/raw \
+    knowledge_base/leptospirosis/raw \
+    knowledge_base/general/raw
 
-# Environment: use CPU-friendly smaller model for cloud
+# ── Environment defaults ───────────────────────────────────────────────────────
+# Override these at runtime with -e or docker-compose environment section
 ENV USE_MLX=false
 ENV LLM_MODEL=Qwen/Qwen2.5-1.5B-Instruct
 ENV WHISPER_SIZE=base
 ENV PORT=7860
+ENV DEBUG=false
+# Set your Discord Forum webhook to enable pipeline logging
+ENV DISCORD_WEBHOOK=""
 
 EXPOSE 7860
 
-# Pre-download models at build time (optional — comment out to speed up build)
-# RUN python -c "import whisper; whisper.load_model('base')"
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD curl -f http://localhost:7860/health || exit 1
 
 CMD ["python", "app.py"]
