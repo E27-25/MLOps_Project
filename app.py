@@ -156,6 +156,7 @@ def extract_epi_fields(text: str) -> dict:
     else:
         inputs = llm_tok(prompt, return_tensors='pt').to(DEVICE)
         with torch.no_grad():
+            from transformers import GenerationConfig
             out = llm.generate(**inputs, max_new_tokens=512, do_sample=False)
         full_out = llm_tok.decode(out[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True)
 
