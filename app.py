@@ -156,7 +156,6 @@ def extract_epi_fields(text: str) -> dict:
     else:
         inputs = llm_tok(prompt, return_tensors='pt').to(DEVICE)
         with torch.no_grad():
-            from transformers import GenerationConfig
             out = llm.generate(**inputs, max_new_tokens=512, do_sample=False)
         full_out = llm_tok.decode(out[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True)
 
@@ -298,12 +297,18 @@ def stream_expert_response(domain: str, epi_fields: dict, rag_chunks: list):
     else:
         import torch
         from transformers import TextIteratorStreamer
-        formatted = llm_tok.apply_chat_template(messages, return_tensors='pt').to(DEVICE)
-        streamer  = TextIteratorStreamer(llm_tok, skip_prompt=True, skip_special_tokens=True)
-        thread    = threading.Thread(
-            target=llm.generate,
-            kwargs=dict(**formatted, max_new_tokens=max_tok, streamer=streamer, do_sample=False)
-        )
+        inputs   = llm_tok.apply_chat_template(messages, return_tensors='pt').to(DEVICE)
+        streamer = TextIteratorStreamer(llm_tok, skip_prompt=True, skip_special_tokens=True)
+        gen_kwargs = dict(**inputs, max_new_tokens=max_tok, streamer=streamer, do_sample=False)
+
+        def _safe_generate():
+            try:
+                llm.generate(**gen_kwargs)
+            except Exception as e:
+                log.error(f"LLM generate error: {e}")
+                streamer.on_finalized_text("", stream_end=True)
+
+        thread = threading.Thread(target=_safe_generate)
         thread.start()
         yield from _strip_think_stream(streamer)
 
