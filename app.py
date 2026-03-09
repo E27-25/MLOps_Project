@@ -301,7 +301,7 @@ def stream_expert_response(domain: str, epi_fields: dict, rag_chunks: list):
         streamer  = TextIteratorStreamer(llm_tok, skip_prompt=True, skip_special_tokens=True)
         thread    = threading.Thread(
             target=llm.generate,
-            kwargs=dict(inputs=formatted, max_new_tokens=max_tok, streamer=streamer, do_sample=False)
+            kwargs=dict(**formatted, max_new_tokens=max_tok, streamer=streamer, do_sample=False)
         )
         thread.start()
         yield from _strip_think_stream(streamer)
