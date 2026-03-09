@@ -1,10 +1,8 @@
-version: '3.9'
-
 services:
   zoonoMoE:
     build: .
-    image: zoonoMoE:latest
-    container_name: zoonoMoE
+    image: zoonomoe:latest
+    container_name: zoonomoe
     ports:
       - "7860:7860"
     volumes:
