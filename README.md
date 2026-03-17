@@ -2,9 +2,13 @@
 
 # ZoonoMoE
 
-### *Frictionless zoonotic surveillance, routed at the edge.*
+### 🌍 *Frictionless zoonotic surveillance, routed at the edge.*
 
-> **Speak a field report. Get a veterinary risk assessment spoken back — fully on-device, in under 20 seconds.**
+> <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Microbe.png" alt="Microbe" width="25" align="top" /> **Speak a field report. Get a veterinary risk assessment spoken back — fully on-device, in under 20 seconds.**
+
+<p align="center">
+  <a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=009688&center=true&vCenter=true&width=800&lines=Speak+a+field+report...;Get+a+veterinary+risk+assessment...;Fully+on-device+in+under+20+seconds!" alt="Typing SVG" /></a>
+</p>
 
 <br/>
 
@@ -27,7 +31,7 @@
 
 ---
 
-## Pipeline at a Glance
+## 🌟 Pipeline at a Glance
 
 ```
 Voice / Text
@@ -55,7 +59,7 @@ Voice / Text
 
 ---
 
-## Platform Support
+## 💻 Platform Support
 
 | Platform | ASR | LLM | TTS | Inference |
 |---|---|---|---|---|
@@ -66,7 +70,7 @@ Voice / Text
 
 ---
 
-## Quickstart
+## 🚀 Quickstart
 
 ### Mac (Apple Silicon)
 
@@ -103,7 +107,7 @@ Services:
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 ```
 ┌─────────────────┐
@@ -142,7 +146,7 @@ Services:
 
 ---
 
-## Concurrency
+## ⚡ Concurrency
 
 | Component | Parallel capacity | Mechanism |
 |---|---|---|
@@ -155,7 +159,7 @@ Multiple users are served concurrently — no request blocks another.
 
 ---
 
-## Step-by-Step Workflow
+## 🔄 Step-by-Step Workflow
 
 <details>
 <summary><b>Step 1 — ASR</b></summary>
@@ -263,7 +267,7 @@ train(model_dir=Path('models'), extra_data=Path('data/router_training.jsonl'))
 
 ---
 
-## Test Inputs
+## 🧪 Test Inputs
 
 | Domain | Input |
 |---|---|
@@ -276,7 +280,7 @@ train(model_dir=Path('models'), extra_data=Path('data/router_training.jsonl'))
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 MLOps_Project/
@@ -324,7 +328,7 @@ MLOps_Project/
 
 ---
 
-## Configuration
+## ⚙️ Configuration
 
 | Variable | Default | Description |
 |---|---|---|
@@ -340,7 +344,7 @@ MLOps_Project/
 
 ---
 
-## Docker Deployment
+## 🐳 Docker Deployment
 
 ```bash
 # GPU (Triton enabled)
@@ -363,7 +367,7 @@ Persisted volumes:
 
 ---
 
-## Google Cloud Deployment (GPU VM)
+## ☁️ Google Cloud Deployment (GPU VM)
 
 ```bash
 # 1. Build + push images
@@ -385,7 +389,7 @@ Requirements: NVIDIA driver ≥ 590, `nvidia-container-toolkit`, GPU with ≥ 16
 
 ---
 
-## Discord Pipeline Logging
+## 📊 Discord Pipeline Logging
 
 Every inference run logged to a Discord Forum channel as its own thread.
 
@@ -406,7 +410,7 @@ python3 backend/scripts/discord_logger.py   # dry-run test
 
 ---
 
-## Performance
+## 📈 Performance
 
 | Metric | Value |
 |---|---|
@@ -418,7 +422,7 @@ python3 backend/scripts/discord_logger.py   # dry-run test
 
 ---
 
-## Technology Stack
+## 🛠️ Technology Stack
 
 | Layer | Technology |
 |---|---|
