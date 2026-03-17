@@ -1,0 +1,48 @@
+# ZoonoMoE — Python Dependencies
+# Install: pip install -r requirements.txt --break-system-packages
+
+# ── Core web framework ──────────────────────────────────────────
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9       # required for UploadFile (file uploads)
+jinja2>=3.1.0                 # template rendering
+
+# ── ASR ─────────────────────────────────────────────────────────
+openai-whisper>=20231117       # fallback (non-MLX)
+mlx-whisper>=0.4.0             # Mac M-series (auto-selected)
+
+# ── LLM (choose one path) ───────────────────────────────────────
+mlx-lm>=0.19.0                 # Mac M-series (fast, recommended)
+transformers>=4.40.0           # fallback (Linux/cloud)
+torch>=2.2.0                   # needed by transformers fallback
+accelerate>=0.27.0             # needed by transformers fallback
+
+# ── TTS ─────────────────────────────────────────────────────────
+kokoro>=0.9.4
+soundfile>=0.12.1
+
+# ── Embeddings + Router + RAG ───────────────────────────────────
+sentence-transformers>=3.0.0
+scikit-learn>=1.4.0            # MLP router training
+numpy>=1.26.0
+
+# ── Audio processing ────────────────────────────────────────────
+imageio-ffmpeg>=0.4.9              # bundles ffmpeg binary (Windows/Mac/Linux)
+
+# ── Optional: FAISS for large corpora ──────────────────────────
+# faiss-cpu>=1.8.0             # uncomment if corpus > 10k chunks
+# langchain>=0.2.0             # uncomment for document loading
+
+# ── Triton Inference Server client ─────────────────────────────
+tritonclient[http]>=2.44.0        # HTTP client for Triton server
+
+# ── Database ────────────────────────────────────────────────────
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0
+
+# ── MLOps — Experiment Tracking & Pipeline Monitoring ──────────
+discordflow[system]>=0.3.0     # team-built Discord Forum experiment tracker
+                               # logs every pipeline run + router retrains
+                               # as dedicated Forum threads with metrics,
+                               # params, artifacts, and system stats
+                               # source: github.com/E27-25/discordflow

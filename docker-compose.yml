@@ -1,0 +1,91 @@
+version: "3.9"
+
+services:
+  triton:
+    build:
+      context: .
+      dockerfile: triton.Dockerfile
+    image: zoonmoe-triton:latest
+    container_name: zoonmoe-triton
+    ports:
+      - "8000:8000" # HTTP inference
+      - "8001:8001" # gRPC inference
+      - "8002:8002" # metrics
+    volumes:
+      - huggingface_cache:/root/.cache/huggingface
+      - whisper_cache:/root/.cache/whisper
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    command: tritonserver --model-repository=/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v2/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  backend:
+    build: ./backend
+    image: zoonmoe-backend:latest
+    container_name: zoonmoe-backend
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./backend/knowledge_base:/app/knowledge_base
+      - ./backend/models:/app/models
+      - ./backend/data:/app/data
+      - ./backend/scripts:/app/scripts
+      - huggingface_cache:/root/.cache/huggingface
+      - whisper_cache:/root/.cache/whisper
+    environment:
+      - USE_MLX=false
+      - LLM_MODEL=cyankiwi/Qwen3-4B-Instruct-2507-AWQ-8bit
+      - WHISPER_SIZE=base
+      - PORT=7860
+      - DEBUG=false
+      - DISCORD_WEBHOOK=${DISCORD_WEBHOOK:-}
+      - USE_TRITON=true
+      - TRITON_URL=triton:8000
+      - DATABASE_URL=${DATABASE_URL:-}
+      - VLLM_ATTENTION_BACKEND=XFORMERS
+      - VLLM_USE_V1=0
+      # Comma-separated list of origins allowed to call this backend.
+      # Add your Vercel domain here, e.g. https://your-app.vercel.app
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    depends_on:
+      triton:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+# NOTE: Frontend is now deployed on Vercel.
+# To run frontend locally alongside this stack:
+#   cd frontend && npm install && NEXT_PUBLIC_BACKEND_URL=http://localhost:7860 npm run dev
+
+volumes:
+  huggingface_cache:
+  whisper_cache:

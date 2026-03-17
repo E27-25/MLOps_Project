@@ -1,0 +1,66 @@
+ZOONOTIC DISEASE SURVEILLANCE AND REPORTING — FIELD GUIDE
+Source: WHO One Health / Thai DLD-DDC Joint Protocol / FAO EMPRES
+
+WHAT ARE ZOONOSES?
+Diseases transmissible between animals and humans. Over 200 known zoonoses.
+75% of emerging infectious diseases originate in animals.
+Most significant zoonoses in SE Asia: Avian Influenza, Rabies, Nipah, Leptospirosis, FMD (economic), Brucellosis, Q Fever, Scrub Typhus.
+
+WHEN TO REPORT — ANIMAL DISEASE ALERTS:
+Report ANY of the following to DLD IMMEDIATELY:
+□ Sudden death of ≥3 animals in same herd/flock within 24 hours
+□ Unusual neurological signs: circling, tremors, paddling, blindness, head pressing
+□ Unexpected abortion storm: ≥3 abortions in 1 week in same herd
+□ Severe bleeding (hemorrhage) from multiple body openings
+□ Blisters (vesicles) on mouth, tongue, or feet of livestock
+□ Animal biting unprovoked, with foaming/salivating excessively
+□ Wild animals found alive on ground unable to fly/walk normally
+□ Unusually high number of dead wild birds in one area
+□ Any illness simultaneously affecting both animals AND people on same farm
+
+THAILAND REPORTING CONTACTS:
+- DLD Emergency Hotline: 02-653-4444 (24/7)
+- Animal Disease Surveillance Center (ADSC): 02-579-8521
+- Department of Disease Control (human cases): 1422
+- Emergency Operations Center MOH: 02-590-1994
+- FAO ECTAD Thailand (technical support for major outbreaks): +66-2-697-4000
+
+SAMPLE COLLECTION BASICS:
+Blood samples: 5–10 ml red-top tube; label with species, date, location, signs
+Swabs: sterile viral transport media (VTM) for respiratory/cloacal swabs
+Fresh tissue: spleen, lung, brain in double-sealed leak-proof bags
+All samples: refrigerated (4°C), NOT frozen unless >24 hours from lab
+Always wear gloves and mask when collecting samples from suspected zoonotic cases
+
+ONE HEALTH FRAMEWORK:
+- Animal Health (DLD): detect, respond, control disease in animals
+- Public Health (DDC/MOH): monitor human cases, investigate exposure
+- Environmental Health: vector control, habitat management
+- Agriculture/Food Safety: ensure safe food chain
+Coordination via Thai One Health Zoonotic Disease Prioritization (OHZDP) framework
+
+BRUCELLOSIS (common in livestock — brief guide):
+- Caused by Brucella abortus (cattle), B. melitensis (goats/sheep), B. suis (pigs)
+- Humans: "undulant fever" — recurring fever, sweats, joint/muscle pain, fatigue (months to years)
+- Animals: abortion, retained placenta, orchitis in males; no fever, no external signs
+- Transmission: raw milk, unpasteurized cheese, birth fluids, placenta of infected animals
+- Prevention: pasteurize all milk; wear gloves during calving; vaccinate cattle (S19/RB51)
+
+Q FEVER (Coxiella burnetii):
+- Reservoir: cattle, sheep, goats; shed massive quantities in birth fluids, placenta, and milk
+- Human infection: inhale contaminated aerosol (during lambing/calving season)
+- Symptoms: flu-like illness; chronic form → endocarditis (life-threatening)
+- Prevention: handle placenta and birth fluids with gloves and mask; vaccinate livestock
+
+SCRUB TYPHUS (Orientia tsutsugamushi):
+- Vector: chigger mite larvae on rodents and vegetation
+- Human: eschar (black scab) at bite site, fever, rash
+- Common in Thailand hill tribe areas, rubber plantations, grasslands
+- Treatment: Doxycycline 100mg BD x 7 days (very effective if given early)
+- Prevention: DEET repellent, permethrin-treated clothing, avoid sitting on ground in scrub
+
+PERSONAL PROTECTIVE EQUIPMENT (PPE) GUIDE:
+Level 1 (routine animal contact): gloves, boots, hand hygiene
+Level 2 (sick animals, unknown cause): + surgical mask, eye protection
+Level 3 (suspected HPAI, Nipah, hemorrhagic fever): + N95 respirator, impermeable gown, face shield
+Level 4 (confirmed BSL-4 pathogen): Full PAPR + sealed suit — specialist team only

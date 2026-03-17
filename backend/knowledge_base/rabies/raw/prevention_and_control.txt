@@ -1,0 +1,42 @@
+RABIES — PREVENTION, CONTROL, AND MASS VACCINATION
+Source: WHO/OIE/FAO Rabies Blueprint / Thai DLD Rabies Control Program
+
+MASS DOG VACCINATION:
+- Target: >70% dog population vaccinated annually to break transmission
+- Vaccine: inactivated rabies vaccine (licensed for dogs/cats)
+- Annual booster required for sustained immunity
+- Thai government: annual free vaccination campaign (World Rabies Day, September 28)
+- Record all vaccinations in dog registry
+
+WILDLIFE RABIES (Less common in SE Asia):
+- Oral Rabies Vaccination (ORV): bait drops used in Europe/Americas for fox, raccoon rabies
+- Not widely implemented in Southeast Asia
+- Monkeys in tourist areas have caused human cases (Lopburi, Thailand)
+
+PRE-EXPOSURE PROPHYLAXIS (PrEP):
+Recommended for: veterinarians, animal handlers, laboratory workers, wildlife rangers, travelers to endemic areas
+- 3 doses of human rabies vaccine: days 0, 7, 21 (or 28)
+- Booster: every 3 years for continued risk, or based on antibody titer check
+
+NOTIFICATION AND REPORTING:
+- All suspected animal rabies cases: report to DLD within 24 hours
+- All human exposures: report to local public health authority
+- Animal head (not whole body) submitted to reference laboratory for FAT testing
+- Submission: refrigerated, NOT frozen (FAT quality depends on tissue preservation)
+
+STRAY DOG MANAGEMENT:
+- Trap-Neuter-Vaccinate-Return (TNVR): reduces population while building herd immunity
+- Impound-and-cull programs: less effective long-term (rapid reinvasion)
+- Community-based education key: responsible pet ownership, avoid feeding strays
+
+ELIMINATION TARGET:
+- WHO goal: Zero human deaths from dog-mediated rabies by 2030
+- Thailand: active elimination program underway
+- Key strategy: dog vaccination + PEP access + surveillance + awareness
+
+SPECIMEN COLLECTION FOR DIAGNOSIS:
+- Brain (cerebellum, brainstem, hippocampus) of dead animal
+- Transport: refrigerated in sealed container with dry ice if >24 hours
+- FAT: same day result at reference lab
+- RT-PCR: confirmatory, can use fresh or fixed tissue
+- NEVER open skull in the field — biosafety risk

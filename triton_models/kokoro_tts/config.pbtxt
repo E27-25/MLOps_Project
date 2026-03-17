@@ -1,0 +1,31 @@
+name: "kokoro_tts"
+backend: "python"
+max_batch_size: 0
+
+input [
+  {
+    name: "text"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+  },
+  {
+    name: "voice"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+  }
+]
+
+output [
+  {
+    name: "audio_b64"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+  }
+]
+
+instance_group [
+  {
+    count: 3
+    kind: KIND_CPU
+  }
+]

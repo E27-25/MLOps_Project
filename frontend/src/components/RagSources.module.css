@@ -1,0 +1,31 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chunk {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.num {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--mauve);
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.text {
+  font-size: 12px;
+  color: var(--subtext);
+  line-height: 1.6;
+}
+
+.empty {
+  font-size: 12px;
+  color: var(--muted);
+}

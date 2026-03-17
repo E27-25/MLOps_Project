@@ -1,0 +1,43 @@
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 130px 1fr 50px;
+  align-items: center;
+  gap: 10px;
+}
+
+.label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--subtext);
+  text-transform: capitalize;
+}
+.label.selected { color: var(--mauve); }
+
+.track {
+  height: 6px;
+  background: var(--surface0);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: var(--surface1);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+.fill.selectedFill { background: var(--mauve); }
+
+.score {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  text-align: right;
+}
+.score.selected { color: var(--mauve); }

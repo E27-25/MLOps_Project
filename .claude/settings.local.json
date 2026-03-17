@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(conda run -n mlop pip show bitsandbytes)",
+      "Bash(npm run build)",
+      "Bash(docker compose build backend)"
+    ]
+  }
+}

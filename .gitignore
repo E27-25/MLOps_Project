@@ -1,0 +1,65 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+env/
+
+# Models / Weights (large files)
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.onnx
+*.gguf
+backend/models/*.pkl
+!backend/models/router.pkl
+!backend/models/router_meta.json
+
+# FAISS indexes (regeneratable)
+backend/knowledge_base/**/index.pkl
+
+# HuggingFace / Whisper cache
+.cache/
+*.cache/
+
+# Docker
+.docker/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Triton model weights (baked into image)
+triton_models/**/1/__pycache__/

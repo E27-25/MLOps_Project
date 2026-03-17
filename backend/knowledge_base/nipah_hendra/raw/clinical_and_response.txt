@@ -1,0 +1,70 @@
+NIPAH AND HENDRA VIRUS — CLINICAL GUIDE AND OUTBREAK RESPONSE
+Source: WHO Nipah Preparedness Plan / Australian DAFF Hendra Factsheet / CDC Special Pathogens
+
+ETIOLOGY:
+Nipah virus (NiV) and Hendra virus (HeV): genus Henipavirus, family Paramyxoviridae.
+Both are BSL-4 pathogens. NO approved vaccine or specific antiviral for humans (as of 2024).
+Natural reservoir: fruit bats (Pteropus spp.) — flying foxes, Lyle's flying fox in SE Asia.
+
+NIPAH — ANIMAL HOSTS AND SIGNS:
+PIGS (1998 Malaysia outbreak — amplifying host):
+- Acute febrile illness, high fever 39–40°C
+- Severe respiratory distress: labored, noisy breathing (distinctive "3-mile cough" / barking cough)
+- Neurological signs: trembling, muscle twitching, hindlimb weakness, rear leg splaying
+- Head pressing, aimless wandering, paddling seizures
+- Rapid herd spread: 100% morbidity possible
+- Mortality: 40% in Adults, >90% in piglets
+- Nasal/throat secretions infectious — avoid direct contact
+
+HORSES (Hendra — Queensland, Australia):
+- Acute fever, respiratory distress (fluid in lungs — frothy nasal discharge)
+- Neurological deterioration: facial muscle twitching, ataxia, circling
+- Rapid death — median 48h from onset of neurological signs
+- CFR in horses ~75%
+- ALL suspected Hendra in horses = immediately notify Australian Chief Veterinary Officer
+- Only vaccinated Hendra horses should be approached by vets (Equivac HeV vaccine available)
+
+NIPAH — HUMAN CLINICAL FEATURES:
+Malaysian strain:
+- Encephalitis after 4–14 day incubation
+- Fever, headache, dizziness, disorientation
+- Rapid progression to coma; 40% CFR
+- Survivors: 15–20% permanent neurological sequelae
+Bangladesh strain (ongoing annual outbreaks):
+- Human-to-human transmission documented (respiratory droplets + direct contact)
+- Higher CFR: 70–100% in outbreak settings
+- Transmission in hospital settings without PPE
+
+RISK FACTORS FOR EXPOSURE:
+- Pig farming near Pteropus bat colonies or fruit orchards
+- Bamboo wells or date palm sap collection contaminated by bat feces/urine
+- Climbing trees at dusk (disturbing bats)
+- Fruit fallen from bat-fed trees consumed without washing
+- Deforestation pushing bats into agricultural zones
+
+IMMEDIATE RESPONSE PROTOCOL:
+1. DO NOT approach affected pigs without full PPE (N95 + goggles + gown + double gloves)
+2. IMMEDIATELY notify national authorities — Nipah is NOTIFIABLE
+3. Isolate affected pigs; restrict farm access to minimum essential personnel
+4. NO field necropsy — all samples to BSL-4 accredited laboratory
+5. Contact tracing: all humans who had unprotected contact with sick animals
+6. Healthcare staff: strict airborne + contact + droplet precautions
+7. Laboratory samples: serum, CSF, urine, throat swab in triple-packaging
+
+PPE REQUIREMENTS (minimum for handling suspected Nipah animals):
+- Powered Air-Purifying Respirator (PAPR) or N95 minimum
+- Eye protection: goggles (not face shield alone)
+- Impermeable gown or Tyvek coverall
+- Double nitrile gloves, taped at wrists
+- Rubber boots + overshoe
+
+TREATMENT:
+No specific antiviral approved. Supportive care: ventilator support, seizure management.
+Ribavirin: limited antiviral activity in vitro; Bangladesh trials inconclusive.
+Monoclonal antibody m102.4: compassionate use in Australia for HeV exposures.
+
+DIFFERENTIAL DIAGNOSIS (encephalitis + respiratory in pigs):
+- PRRS (Porcine Reproductive and Respiratory Syndrome): similar but no neurological "barking"
+- Swine Influenza: respiratory predominant; no major neurological
+- PCV2 (Circovirus): chronic wasting; slower progression
+→ Nipah suspected if: respiratory + neurological + high mortality + human illness in farm workers

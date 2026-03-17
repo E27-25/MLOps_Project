@@ -1,0 +1,33 @@
+name: "whisper_asr"
+backend: "python"
+max_batch_size: 0
+
+input [
+  {
+    name: "wav_bytes"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+  }
+]
+
+output [
+  {
+    name: "transcript"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+  }
+]
+
+parameters [
+  {
+    key: "whisper_size"
+    value: { string_value: "base" }
+  }
+]
+
+instance_group [
+  {
+    count: 2
+    kind: KIND_CPU
+  }
+]
