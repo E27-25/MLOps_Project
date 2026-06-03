@@ -1,0 +1,114 @@
+{
+  "Centroid (cosine)": {
+    "f1_mean": 0.9362807562807562,
+    "f1_std": 0.0444200542964332,
+    "acc_mean": 0.9375,
+    "acc_std": 0.04419417382415922,
+    "clf_size_kb": 9.611328125,
+    "latency_clf_ms": 0.007984926924109459,
+    "latency_total_ms": 13.752146158367395,
+    "family": "embedding"
+  },
+  "kNN (k=5)": {
+    "f1_mean": 0.943045658045658,
+    "f1_std": 0.03279639673906418,
+    "acc_mean": 0.94375,
+    "acc_std": 0.03061862178478973,
+    "clf_size_kb": 241.9287109375,
+    "latency_clf_ms": 1.3013114221394062,
+    "latency_total_ms": 15.045472653582692,
+    "family": "embedding"
+  },
+  "LogReg (emb)": {
+    "f1_mean": 0.9425509675509675,
+    "f1_std": 0.04775169838196453,
+    "acc_mean": 0.94375,
+    "acc_std": 0.04592793267718459,
+    "clf_size_kb": 18.763671875,
+    "latency_clf_ms": 0.0678368378430605,
+    "latency_total_ms": 13.811998069286346,
+    "family": "embedding"
+  },
+  "MLP (128,64) early-stop": {
+    "f1_mean": 0.7069914036580702,
+    "f1_std": 0.26471513339989966,
+    "acc_mean": 0.74375,
+    "acc_std": 0.20482462010217425,
+    "clf_size_kb": 687.287109375,
+    "latency_clf_ms": 0.16792421229183674,
+    "latency_total_ms": 13.912085443735123,
+    "family": "embedding"
+  },
+  "MLP (64,) [ours]": {
+    "f1_mean": 0.9562715062715063,
+    "f1_std": 0.032518821654642815,
+    "acc_mean": 0.95625,
+    "acc_std": 0.03186887195995491,
+    "clf_size_kb": 404.7236328125,
+    "latency_clf_ms": 0.2586736809462309,
+    "latency_total_ms": 14.002834912389517,
+    "family": "embedding"
+  },
+  "Majority": {
+    "f1_mean": 0.05263157894736842,
+    "f1_std": 0.0,
+    "acc_mean": 0.1875,
+    "acc_std": 0.0,
+    "clf_size_kb": 0.0,
+    "latency_clf_ms": 0.0,
+    "latency_total_ms": 0.0,
+    "family": "trivial"
+  },
+  "Keyword/regex": {
+    "f1_mean": 0.8168234042784902,
+    "f1_std": 0.0,
+    "acc_mean": 0.825,
+    "acc_std": 0.0,
+    "clf_size_kb": 0.0,
+    "latency_clf_ms": 0.011621974408626556,
+    "latency_total_ms": 0.011621974408626556,
+    "family": "rule"
+  },
+  "TF-IDF + LogReg": {
+    "f1_mean": 0.9476107226107227,
+    "f1_std": 0.03948542831712148,
+    "acc_mean": 0.95,
+    "acc_std": 0.0375,
+    "clf_size_kb": 146.58203125,
+    "latency_clf_ms": 0.7905971724539995,
+    "latency_total_ms": 0.7905971724539995,
+    "family": "text"
+  },
+  "_meta": {
+    "n_examples": 160,
+    "n_classes": 6,
+    "classes": [
+      "avian_flu",
+      "fmd",
+      "general",
+      "leptospirosis",
+      "nipah_hendra",
+      "rabies"
+    ],
+    "embedder": "sentence-transformers/all-MiniLM-L6-v2",
+    "embedder_latency_ms": 13.744161231443286,
+    "seed": 42,
+    "folds": 5,
+    "per_class_f1": {
+      "avian_flu": 0.9818181818181818,
+      "fmd": 0.9795918367346939,
+      "general": 0.8979591836734694,
+      "leptospirosis": 0.9803921568627451,
+      "nipah_hendra": 0.9032258064516129,
+      "rabies": 1.0
+    },
+    "class_distribution": {
+      "avian_flu": 27,
+      "rabies": 27,
+      "fmd": 25,
+      "nipah_hendra": 30,
+      "leptospirosis": 26,
+      "general": 25
+    }
+  }
+}

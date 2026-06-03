@@ -229,7 +229,7 @@ export default function LandingPage() {
           </div>
           <div className={styles.navRight}>
             <span className={styles.navPill}>● ONLINE</span>
-            <a href="https://github.com/E27-25/MLOps_Project" target="_blank" rel="noreferrer" className={styles.navLink}>Docs</a>
+            <a href="https://github.com/E27-25/ZoonoMoE-Specialist-Routing-Cascade" target="_blank" rel="noreferrer" className={styles.navLink}>Docs</a>
             <button className={styles.btnPrimary} onClick={() => router.push('/app')} style={{ padding:'9px 22px', fontSize:'13px', borderRadius:'10px' }}>
               Launch →
             </button>
@@ -251,7 +251,7 @@ export default function LandingPage() {
           </p>
           <div className={styles.ctaRow}>
             <button className={styles.btnPrimary} onClick={() => router.push('/app')}>Launch ZoonoMoE →</button>
-            <a href="https://github.com/E27-25/MLOps_Project" target="_blank" rel="noreferrer" className={styles.btnOutline}>View on GitHub</a>
+            <a href="https://github.com/E27-25/ZoonoMoE-Specialist-Routing-Cascade" target="_blank" rel="noreferrer" className={styles.btnOutline}>View on GitHub</a>
           </div>
           <div className={styles.statsStrip}>
             {STATS.flatMap(([num, lbl], i, arr) => {
@@ -346,7 +346,7 @@ export default function LandingPage() {
             </p>
             <div className={styles.ctaRow}>
               <button className={styles.btnPrimary} onClick={() => router.push('/app')}>Launch ZoonoMoE →</button>
-              <a href="https://github.com/E27-25/MLOps_Project" target="_blank" rel="noreferrer" className={styles.btnOutline}>View Docs</a>
+              <a href="https://github.com/E27-25/ZoonoMoE-Specialist-Routing-Cascade" target="_blank" rel="noreferrer" className={styles.btnOutline}>View Docs</a>
             </div>
           </div>
         </section>

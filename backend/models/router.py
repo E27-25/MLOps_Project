@@ -21,6 +21,15 @@ from pathlib import Path
 
 log = logging.getLogger(__name__)
 
+
+# ─── Calibrated-softmax helper (temperature scaling) ────────────────────────
+def _softmax_T(logits: np.ndarray, T: float = 1.0) -> np.ndarray:
+    """Row-wise temperature-scaled softmax. logits: (n, K)."""
+    z = np.asarray(logits, dtype=np.float64) / max(T, 1e-6)
+    z = z - z.max(axis=1, keepdims=True)
+    e = np.exp(z)
+    return e / e.sum(axis=1, keepdims=True)
+
 # ─── Domain definitions ────────────────────────────────────────────────────
 
 DOMAINS = [
@@ -128,6 +137,10 @@ class ZoonoticRouter:
         self.n_domains = len(DOMAINS)
         self.backend   = "cosine"   # default
 
+        # Cascade stage-1 (cheap text model) state, loaded if present
+        self._cascade   = None      # dict: stage1, temperature, tau, classes
+        self.last_stage = None      # 1 or 2 — which stage answered the last query
+
         # Try to load trained MLP
         if model_dir:
             model_path = Path(model_dir) / "router.pkl"
@@ -142,6 +155,20 @@ class ZoonoticRouter:
                     self._mlp = None
             else:
                 self._mlp = None
+
+            # Optional confidence-gated cascade (Stage 1: TF-IDF+LogReg).
+            # Only enabled if both the cascade artifact and the MLP are present.
+            casc_path = Path(model_dir) / "cascade.pkl"
+            if casc_path.exists() and self._mlp is not None:
+                try:
+                    with open(casc_path, 'rb') as f:
+                        self._cascade = pickle.load(f)
+                    self.backend = "cascade"
+                    log.info(f"Router: loaded cascade (tau={self._cascade['tau']:.2f}, "
+                             f"T={self._cascade['temperature']:.2f}) from {casc_path}")
+                except Exception as e:
+                    log.warning(f"Router: failed to load cascade ({e}); using MLP only")
+                    self._cascade = None
         else:
             self._mlp = None
 
@@ -172,9 +199,32 @@ class ZoonoticRouter:
         """
         # Enrich query with epi fields if available
         enriched = self._enrich(text, epi_fields or {})
-        emb = self.embedder.encode([enriched], normalize_embeddings=True)[0]
 
+        # Stage 1 of the cascade: cheap text classifier with calibrated
+        # confidence. Only escalate to the embedding model when unsure.
+        if self.backend == "cascade" and self._cascade is not None:
+            stage1, T, tau = (self._cascade["stage1"],
+                              self._cascade["temperature"],
+                              self._cascade["tau"])
+            logits = stage1.decision_function([enriched])
+            probs1 = _softmax_T(logits, T)[0]
+            conf1  = float(probs1.max())
+            if conf1 >= tau:
+                self.last_stage = 1
+                order = self._cascade["classes"]
+                scores = {d: float(p) for d, p in zip(order, probs1)}
+                # present in canonical DOMAINS order
+                scores = {d: scores.get(d, 0.0) for d in self.domains}
+                best = max(scores, key=scores.get)
+                return best, scores[best], scores
+            # else fall through to Stage 2 (embedding + MLP)
+            self.last_stage = 2
+            emb = self.embedder.encode([enriched], normalize_embeddings=True)[0]
+            return self._classify_mlp(emb)
+
+        emb = self.embedder.encode([enriched], normalize_embeddings=True)[0]
         if self.backend == "mlp" and self._mlp is not None:
+            self.last_stage = 2
             return self._classify_mlp(emb)
         else:
             return self._classify_cosine(emb)
@@ -245,13 +295,18 @@ def train(model_dir: Path, extra_data: Path = None):
     y  = le.fit_transform(labels)
 
     print("Training MLP classifier...")
+    # NOTE: early_stopping=True with a 15% validation split severely underfits
+    # on this small (~160 example) dataset — the optimizer halts before the
+    # network learns the task (5-fold macro-F1 collapses to ~0.71 ± 0.26).
+    # Disabling early stopping with mild L2 regularization recovers the
+    # expected performance (~0.95 macro-F1). See scripts/ablation_router.py.
     clf = MLPClassifier(
-        hidden_layer_sizes=(128, 64),
+        hidden_layer_sizes=(64,),
         activation='relu',
-        max_iter=500,
+        max_iter=1000,
         random_state=42,
-        early_stopping=True,
-        validation_fraction=0.15,
+        early_stopping=False,
+        alpha=1e-3,
     )
     clf.fit(X, y)
 
@@ -284,12 +339,76 @@ def train(model_dir: Path, extra_data: Path = None):
     print("Metadata saved.")
 
 
+# ─── Cascade training ───────────────────────────────────────────────────────
+
+def train_cascade(model_dir: Path, extra_data: Path = None, tau: float = 0.54):
+    """Train the Stage-1 text classifier (TF-IDF + LogReg) and fit a temperature
+    for calibrated confidence, saving cascade.pkl alongside router.pkl.
+
+    Serve-time behaviour: Stage 1 answers when its calibrated max-probability is
+    >= tau; otherwise the query escalates to the embedding+MLP (Stage 2).
+    See scripts/cascade_router.py for the full operating-point analysis.
+    """
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import LabelEncoder
+    from sklearn.model_selection import train_test_split
+    from scipy.optimize import minimize_scalar
+    import warnings
+    warnings.filterwarnings('ignore')
+
+    examples = list(SEED_EXAMPLES)
+    if extra_data and Path(extra_data).exists():
+        with open(extra_data) as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    item = json.loads(line)
+                    examples.append((item["text"], item["domain"]))
+    texts  = [t for t, _ in examples]
+    labels = [d for _, d in examples]
+    le = LabelEncoder().fit(DOMAINS)
+    y  = le.transform(labels)
+
+    # Hold out a calibration split to fit the temperature without leakage.
+    tr, cal = train_test_split(np.arange(len(texts)), test_size=0.25,
+                               stratify=y, random_state=42)
+    stage1 = make_pipeline(
+        TfidfVectorizer(ngram_range=(1, 2), min_df=1, sublinear_tf=True),
+        LogisticRegression(max_iter=1000, C=10.0))
+    stage1.fit([texts[i] for i in tr], y[tr])
+
+    cal_logits = stage1.decision_function([texts[i] for i in cal])
+    def _nll(logT):
+        p = _softmax_T(cal_logits, np.exp(logT))
+        return -np.mean(np.log(p[np.arange(len(cal)), y[cal]] + 1e-12))
+    T = float(np.exp(minimize_scalar(_nll, bounds=(-3, 3), method="bounded").x))
+
+    # Refit Stage 1 on all data for deployment.
+    stage1.fit(texts, y)
+
+    model_dir = Path(model_dir); model_dir.mkdir(parents=True, exist_ok=True)
+    blob = dict(stage1=stage1, temperature=T, tau=float(tau),
+                classes=list(le.classes_))
+    with open(model_dir / "cascade.pkl", 'wb') as f:
+        pickle.dump(blob, f)
+    print(f"Cascade saved: tau={tau:.2f}, temperature={T:.3f} -> "
+          f"{model_dir / 'cascade.pkl'}")
+    print("Serve-time: Stage 1 (TF-IDF+LogReg) answers when calibrated "
+          "confidence >= tau; else escalates to embedding+MLP.")
+
+
 # ─── CLI ──────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="ZoonoticSense Router Training")
     parser.add_argument("--train",   action="store_true", help="Train the MLP router")
+    parser.add_argument("--train-cascade", action="store_true",
+                        help="Train the Stage-1 cascade (TF-IDF+LogReg + temperature)")
+    parser.add_argument("--tau",     type=float, default=0.54,
+                        help="Cascade escalation threshold (default 0.54)")
     parser.add_argument("--extra",   type=str, default=None, help="Path to extra JSONL training data")
     parser.add_argument("--out-dir", type=str, default="models", help="Output directory for model")
     parser.add_argument("--test",    type=str, default=None, help="Quick test: classify this text")
@@ -298,17 +417,21 @@ if __name__ == "__main__":
     if args.train:
         train(model_dir=Path(args.out_dir), extra_data=args.extra)
 
-    elif args.test:
+    if args.train_cascade:
+        train_cascade(model_dir=Path(args.out_dir), extra_data=args.extra, tau=args.tau)
+
+    if args.test:
         from sentence_transformers import SentenceTransformer
         print("Loading embedder for test...")
         emb = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
         r   = ZoonoticRouter(embedder=emb, model_dir=Path(args.out_dir))
         domain, conf, scores = r.classify(args.test)
         print(f"\nText: {args.test}")
-        print(f"Domain: {domain} (confidence: {conf:.3f})")
+        print(f"Domain: {domain} (confidence: {conf:.3f}, stage={r.last_stage})")
         print("All scores:")
         for d, s in sorted(scores.items(), key=lambda x: -x[1]):
             bar = "█" * int(s * 40)
             print(f"  {d:20s}: {s:.3f} {bar}")
-    else:
+
+    if not args.train and not args.train_cascade and not args.test:
         parser.print_help()

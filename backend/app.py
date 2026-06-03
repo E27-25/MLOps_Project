@@ -758,6 +758,8 @@ async def analyze(body: AnalyzeRequest):
         t1 = time.time()
         domain, confidence, all_scores = router.classify(transcript, epi_fields)
         route_time = round(time.time() - t1, 2)
+        # Which cascade stage answered (1 = cheap text model, 2 = embedding+MLP)
+        route_stage = getattr(router, "last_stage", None)
         log.info(f"Router ({route_time}s): domain={domain} conf={confidence:.2f}")
 
         has_species   = bool(epi_fields.get("species"))
@@ -794,6 +796,8 @@ async def analyze(body: AnalyzeRequest):
             "confidence":  round(confidence, 3),
             "all_scores":  {k: round(v, 3) for k, v in all_scores.items()},
             "rag_chunks":  rag_chunks,
+            "route_stage":    route_stage,
+            "router_backend": getattr(router, "backend", None),
             "timing": {
                 "ner_s":   ner_time,
                 "route_s": route_time,
@@ -818,17 +822,39 @@ async def stream(body: StreamRequest):
     def generate():
         full_text  = ""
         audio_sent = 0
+        # ── latency instrumentation (Expert LLM + TTS stages) ──
+        t_start  = time.time()
+        ttft     = None          # time-to-first-token/sentence (LLM responsiveness)
+        ttfa     = None          # time-to-first-audio (spoken responsiveness)
+        tts_time = 0.0           # accumulated time inside speech synthesis
 
         token_gen = stream_expert_response(domain, epi_fields, rag_chunks)
 
         for sentence in iter_sentence_chunks(token_gen):
+            if ttft is None:
+                ttft = time.time() - t_start
             full_text += " " + sentence
             yield f"data: {json.dumps({'type': 'text', 'chunk': sentence})}\n\n"
 
+            _t_tts = time.time()
             audio_b64 = synth_audio_b64(sentence, voice=voice)
+            tts_time += time.time() - _t_tts
             if audio_b64:
+                if ttfa is None:
+                    ttfa = time.time() - t_start
                 audio_sent += 1
                 yield f"data: {json.dumps({'type': 'audio', 'data': audio_b64, 'idx': audio_sent, 'sentence': sentence})}\n\n"
+
+        _elapsed  = time.time() - t_start
+        _llm_time = max(_elapsed - tts_time, 0.0)   # generation minus TTS blocking
+        latency = {
+            "total_s": round(_elapsed, 2),
+            "ttft_s":  round(ttft, 3) if ttft is not None else None,
+            "ttfa_s":  round(ttfa, 3) if ttfa is not None else None,
+            "llm_s":   round(_llm_time, 2),
+            "tts_s":   round(tts_time, 2),
+            "audio_chunks": audio_sent,
+        }
 
         is_chat     = epi_fields.get("_off_topic", False)
         risk_level  = parse_risk_level(full_text, is_chat=is_chat)
@@ -880,7 +906,7 @@ async def stream(body: StreamRequest):
             log.error(f"Failed to save report: {_dbe}")
 
         yield f"data: {json.dumps({'type': 'risk_card', 'card': risk_card})}\n\n"
-        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+        yield f"data: {json.dumps({'type': 'done', 'latency': latency})}\n\n"
 
     return StreamingResponse(
         generate(),

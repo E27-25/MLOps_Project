@@ -1,71 +1,40 @@
-#!/bin/bash
-# ZoonoticSense — Mac M4 Setup Script
-# Run: bash setup.sh
+#!/usr/bin/env bash
+# ════════════════════════════════════════════════════════════════════
+#  ZoonoMoE — One-shot setup + launch (Lanta / SLURM GPU node)
+#  Usage:  bash setup.sh
+# ════════════════════════════════════════════════════════════════════
+set -euo pipefail
 
-set -e
-echo ""
-echo "╔══════════════════════════════════════════╗"
-echo "║     ZoonoticSense — Setup (Mac M4)       ║"
-echo "╚══════════════════════════════════════════╝"
-echo ""
+# ── 0. Environment ───────────────────────────────────────────────────
+MODULE_CUDA="${MODULE_CUDA:-cuda/12.1}"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VENV_DIR="${VENV_DIR:-$PROJECT_ROOT/venv}"
+HF_HOME="${HF_HOME:-$PROJECT_ROOT/.hf_cache}"
+PORT="${PORT:-7860}"
+export HF_HOME
 
-# ── Check Python ────────────────────────────────────────────────
-python3 --version || { echo "ERROR: Python 3 not found"; exit 1; }
+echo "▶ ZoonoMoE setup starting in: $PROJECT_ROOT"
 
-# ── Check ffmpeg ─────────────────────────────────────────────────
-if ! command -v ffmpeg &> /dev/null; then
-    echo "[!] ffmpeg not found. Installing via Homebrew..."
-    brew install ffmpeg
+# ── 1. System modules (Lanta) ────────────────────────────────────────
+if command -v module &>/dev/null; then
+    module purge || true
+    module load "$MODULE_CUDA" || echo "  (cuda module not found, continuing)"
 fi
-echo "[✓] ffmpeg: $(ffmpeg -version 2>&1 | head -1)"
 
-# ── Install Python packages ──────────────────────────────────────
-echo ""
-echo "[*] Installing Python packages..."
-pip3 install --break-system-packages \
-    flask \
-    mlx-whisper \
-    mlx-lm \
-    sentence-transformers \
-    scikit-learn \
-    numpy \
-    kokoro \
-    soundfile
+# ── 2. Python venv ───────────────────────────────────────────────────
+if [[ ! -d "$VENV_DIR" ]]; then
+    echo "▶ Creating venv at $VENV_DIR"
+    python3 -m venv "$VENV_DIR"
+fi
+source "$VENV_DIR/bin/activate"
 
-echo ""
-echo "[✓] All packages installed"
+# ── 3. Python deps ───────────────────────────────────────────────────
+pip install --quiet --upgrade pip
+if [[ -f requirements.txt ]]; then
+    pip install --quiet -r requirements.txt
+fi
 
-# ── Create directory structure ───────────────────────────────────
-echo ""
-echo "[*] Creating knowledge base directories..."
-mkdir -p knowledge_base/{avian_flu,rabies,fmd,nipah_hendra,leptospirosis,general}/raw
-mkdir -p models data
-
-echo "[✓] Directory structure ready"
-
-# ── Download models (first run) ──────────────────────────────────
-echo ""
-echo "[*] Pre-downloading models (this may take a few minutes)..."
-python3 -c "
-from sentence_transformers import SentenceTransformer
-print('  Downloading all-MiniLM-L6-v2...')
-SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-print('  Done.')
-"
-
-echo ""
-echo "[*] Training router (using built-in seed data)..."
-python3 models/router.py --train --out-dir models
-echo "[✓] Router trained"
-
-echo ""
-echo "╔══════════════════════════════════════════╗"
-echo "║              Setup Complete!             ║"
-echo "║                                          ║"
-echo "║  Run:  python3 app.py                    ║"
-echo "║  Open: http://localhost:7860             ║"
-echo "╚══════════════════════════════════════════╝"
-echo ""
-echo "NOTE: First run will download Whisper (~150MB)"
-echo "      and Qwen3-4B (~2.5GB) automatically."
-echo ""
+# ── 4. Launch ────────────────────────────────────────────────────────
+echo "▶ Launching ZoonoMoE backend on port $PORT"
+cd "$PROJECT_ROOT"
+python3 app.py

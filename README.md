@@ -75,8 +75,8 @@ Voice / Text
 ### Mac (Apple Silicon)
 
 ```bash
-git clone https://github.com/E27-25/MLOps_Project.git
-cd MLOps_Project
+git clone https://github.com/E27-25/ZoonoMoE-Specialist-Routing-Cascade.git
+cd ZoonoMoE-Specialist-Routing-Cascade
 
 # Backend
 cd backend
@@ -95,8 +95,8 @@ Open **http://localhost:3000**
 ### Docker (Linux + NVIDIA GPU) — Recommended
 
 ```bash
-git clone https://github.com/E27-25/MLOps_Project.git
-cd MLOps_Project
+git clone https://github.com/E27-25/ZoonoMoE-Specialist-Routing-Cascade.git
+cd ZoonoMoE-Specialist-Routing-Cascade
 docker compose up --build
 ```
 
@@ -210,7 +210,13 @@ Structured JSON-mode prompt extracts 8 fields:
 | `nipah_hendra` | 30 |
 | `rabies` | 27 |
 
-**Cross-val F1 (macro, 5-fold): `0.740`**
+**Cross-val F1 (macro, 5-fold): `0.957`**
+
+> Earlier builds reported `0.740` because the MLP shipped with
+> `early_stopping=True` on a small (~160 example) set, which halts training
+> before the network fits. Disabling early stopping with mild L2 recovers
+> `~0.96`. See `backend/scripts/benchmark_router.py` and `ablation_router.py`
+> for the full baseline/ablation study.
 
 Off-topic guard: regex checks for greetings/chat before MLP runs. If matched with no mortality signal → routes to `general` friendly advisor.
 
@@ -283,7 +289,7 @@ train(model_dir=Path('models'), extra_data=Path('data/router_training.jsonl'))
 ## 📁 Project Structure
 
 ```
-MLOps_Project/
+ZoonoMoE-Specialist-Routing-Cascade/
 ├── docker-compose.yml            # Triton + Backend + Frontend
 ├── triton.Dockerfile             # Custom Triton image with Python deps
 │
@@ -321,9 +327,22 @@ MLOps_Project/
 │   ├── static/
 │   └── templates/
 │
-└── frontend/
-    ├── src/app/                  # Next.js 15 App Router
-    └── Dockerfile
+├── frontend/
+│   ├── src/app/                  # Next.js 15 App Router
+│   └── Dockerfile
+│
+├── paper/                        # ICONIP 2026 paper
+│   ├── paper.tex                 # LaTeX source (LNCS)
+│   ├── figs/                     # figures (cascade, pareto, reliability …)
+│   ├── ZoonoMoE-ICONIP2026.pdf   # compiled paper
+│   └── iconip2026-bundle/        # full submission bundle (template + drafts)
+│
+├── docs/                         # deployment & ops guides
+│   ├── DEPLOY.md · HOW_TO_REDEPLOY.md · READMEtriton.md
+│   └── database.md · fixdockererr.md · CHANGES.md
+│
+└── examples/
+    └── sample_field_report.m4a   # example spoken field report
 ```
 
 ---
@@ -414,7 +433,7 @@ python3 backend/scripts/discord_logger.py   # dry-run test
 
 | Metric | Value |
 |---|---|
-| Router F1 (macro, 6-class) | **0.740** |
+| Router F1 (macro, 6-class) | **0.957** |
 | ASR latency | ~1–2 s (Whisper base) |
 | Full pipeline | ~15–20 s end-to-end |
 | TTS first chunk | ~3–5 s after LLM starts |
