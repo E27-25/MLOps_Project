@@ -1,61 +1,75 @@
 <div align="center">
 
+<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Microbe.png" alt="ZoonoMoE" width="96" />
+
 # ZoonoMoE
 
 ### 🌍 *Frictionless zoonotic surveillance, routed at the edge.*
 
-> <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Microbe.png" alt="Microbe" width="25" align="top" /> **Speak a field report. Get a veterinary risk assessment spoken back — fully on-device, in under 20 seconds.**
+**Speak a field report. Get a veterinary risk assessment spoken back — fully on-device, in under 20 seconds.**
 
 <p align="center">
-  <a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=009688&center=true&vCenter=true&width=800&lines=Speak+a+field+report...;Get+a+veterinary+risk+assessment...;Fully+on-device+in+under+20+seconds!" alt="Typing SVG" /></a>
+  <a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=009688&center=true&vCenter=true&width=820&lines=Speak+a+field+report...;ASR+%E2%86%92+NER+%E2%86%92+Router+%E2%86%92+RAG+%E2%86%92+LLM+%E2%86%92+TTS;Fully+on-device+in+under+20+seconds!" alt="Typing SVG" /></a>
 </p>
 
 <br/>
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![vLLM](https://img.shields.io/badge/vLLM-Qwen3-FF6F00?style=for-the-badge&logo=lightning&logoColor=white)](https://github.com/vllm-project/vllm)
+[![FastAPI](https://img.shields.io/badge/FastAPI-SSE-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Next.js](https://img.shields.io/badge/Next.js-15-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![Triton](https://img.shields.io/badge/NVIDIA_Triton-26.02-76B900?style=for-the-badge&logo=nvidia&logoColor=white)](https://github.com/triton-inference-server/server)
-[![Whisper](https://img.shields.io/badge/Whisper-ASR-412991?style=for-the-badge&logo=openai&logoColor=white)](https://github.com/openai/whisper)
 [![License](https://img.shields.io/badge/License-MIT-A6E3A1?style=for-the-badge)](LICENSE)
+
+[![Pipeline](https://img.shields.io/badge/pipeline-6%2F6_verified_on_A100-2ea44f?style=flat-square&logo=githubactions&logoColor=white)](#-demo-samples--verified-run)
+[![Voice](https://img.shields.io/badge/voice-EN_%2B_TH-009688?style=flat-square&logo=googleassistant&logoColor=white)](#-demo-samples--verified-run)
+[![Router F1](https://img.shields.io/badge/router_macro_F1-0.957-blueviolet?style=flat-square)](#step-3--moe-router)
+[![Paper](https://img.shields.io/badge/paper-ICONIP_2026-8957e5?style=flat-square&logo=googlescholar&logoColor=white)](paper/)
 
 <br/>
 
+```text
+ 🎙️  "Three chickens died overnight, cyanotic combs, one found convulsing."
+                          ↓   ~18 s · fully on-device
+ 🔊  "RISK LEVEL: HIGH — consistent with HPAI. Isolate birds. Report to DLD."
 ```
- User says → "Three chickens died overnight, cyanotic combs, one found convulsing."
-                              ↓  ~18 seconds later
- ZoonoMoE → "RISK LEVEL: HIGH — consistent with HPAI. Isolate birds. Report to DLD."
-```
+
+<br/>
+
+**[✨ Highlights](#-highlights) · [🌟 Pipeline](#-pipeline-at-a-glance) · [🚀 Quickstart](#-quickstart) · [🏗️ Architecture](#-architecture) · [🎧 Samples](#-demo-samples--verified-run) · [📈 Performance](#-performance)**
 
 </div>
 
 ---
 
+## ✨ Highlights
+
+- 🧠 **System-level Mixture-of-Experts** — a cheap, calibrated router (control plane) picks 1 of 6 disease specialists; only the chosen expert LLM runs (data plane).
+- 🪜 **Confidence-gated cascade** — TF-IDF + LogReg handles the easy cases; MiniLM + MLP fires only when uncertain → **macro-F1 0.957**.
+- 🔒 **Fully on-device** — ASR, LLM, retrieval, and TTS all run locally. No cloud API, no data leaves the machine.
+- 🗣️ **Bilingual voice I/O** — English (Kokoro) **and Thai (JaiTTS / F5-TTS)**, streamed sentence-by-sentence.
+- ⚡ **Streaming everything** — SSE token stream + per-sentence TTS; first audio in ~3–5 s.
+- ✅ **Verified end-to-end** on an NVIDIA A100-40 GB — 6/6 stages, with playable [audio samples](#-demo-samples--verified-run).
+- 📄 **Research-backed** — the routing-cascade architecture is written up for **ICONIP 2026** (`paper/`).
+
+---
+
 ## 🌟 Pipeline at a Glance
 
-```
-Voice / Text
-     │
-     ▼
-[1] ASR          Whisper + Pathumma-th (lang detect → route)
-     │
-     ▼
-[2] NER          Qwen JSON extraction (species, symptoms, location ...)
-     │
-     ▼
-[3] Router       all-MiniLM-L6-v2 + MLP → 6 disease domains
-     │
-     ▼
-[4] RAG          FAISS per-domain → top-3 chunks
-     │
-     ▼
-[5] LLM Expert   Qwen streaming → risk card (LOW/MEDIUM/HIGH/CRITICAL)
-     │
-     ▼
-[6] TTS          Kokoro-82M → WAV chunks → AudioContext queue
+```mermaid
+flowchart LR
+    IN([🎙️ Voice / Text]):::io --> A[<b>1 · ASR</b><br/>Whisper + Pathumma-th]
+    A --> B[<b>2 · NER</b><br/>Qwen JSON extract]
+    B --> R{<b>3 · Router</b><br/>MiniLM + MLP<br/>cascade}:::hot
+    R --> C[<b>4 · RAG</b><br/>FAISS per-domain]
+    C --> D[<b>5 · Expert LLM</b><br/>Qwen3 · vLLM]
+    D --> E[<b>6 · TTS</b><br/>Kokoro EN · JaiTTS TH]
+    E --> OUT([🔊 Spoken risk card]):::io
+    classDef io fill:#009688,stroke:#00695c,color:#fff;
+    classDef hot fill:#fff3e0,stroke:#fb8c00,color:#000;
 ```
 
-**All processing is on-device — no cloud API, no data leaves your machine.**
+> **All processing is on-device** — no cloud API, no data leaves your machine.
 
 ---
 
@@ -109,37 +123,31 @@ Services:
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────┐
-│  Next.js :3000  │
-└────────┬────────┘
-         │ REST + SSE
-         ▼
-┌──────────────────────────────────────────┐
-│           FastAPI Backend :7860          │
-│                                          │
-│  /upload  → Triton whisper_asr          │
-│  /analyze → Triton sentence_embedder    │
-│           → vLLM NER                    │
-│           → FAISS RAG                   │
-│  /stream  → vLLM SSE stream             │
-│           → Triton kokoro_tts           │
-└──────────────────┬───────────────────────┘
-                   │ HTTP
-                   ▼
-┌──────────────────────────────────────────┐
-│        NVIDIA Triton Server :8000        │
-│                                          │
-│  whisper_asr       ×2 CPU instances     │
-│    Whisper base (lang detect)           │
-│    + Pathumma-whisper-th (Thai)         │
-│                                          │
-│  sentence_embedder  ×1 CPU instance     │
-│    all-MiniLM-L6-v2                     │
-│                                          │
-│  kokoro_tts        ×3 CPU instances     │
-│    Kokoro-82M → WAV → base64            │
-└──────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph FE["🖥️ Next.js · :3000"]
+      UI["Voice UI + live risk card"]
+    end
+    subgraph BE["⚙️ FastAPI · :7860"]
+      direction TB
+      UP["/upload → ASR"]
+      AN["/analyze → NER · Router · RAG"]
+      ST["/stream → LLM · TTS · SSE"]
+    end
+    subgraph TR["🧩 NVIDIA Triton · :8000"]
+      direction TB
+      W["whisper_asr ×2<br/>Whisper + Pathumma-th"]
+      EMB["sentence_embedder ×1<br/>all-MiniLM-L6-v2"]
+      K["kokoro_tts ×3<br/>Kokoro-82M"]
+    end
+    V[("vLLM<br/>Qwen3")]:::hot
+    UI -- "REST + SSE" --> BE
+    UP --> W
+    AN --> EMB
+    AN --> V
+    ST --> V
+    ST --> K
+    classDef hot fill:#fff3e0,stroke:#fb8c00,color:#000;
 ```
 
 > **Why not LLM in Triton?** vLLM SSE streaming requires Triton Decoupled Mode (gRPC only) — significant added complexity for no throughput gain since vLLM already handles concurrency internally via continuous batching + PagedAttention.
@@ -291,12 +299,14 @@ train(model_dir=Path('models'), extra_data=Path('data/router_training.jsonl'))
 The full pipeline was validated **end-to-end on an NVIDIA A100-40 GB** (Qwen3-14B
 via vLLM, 6/6 stages green). Audio in [`backend/samples/`](backend/samples/):
 
-| File | What |
-|---|---|
-| `input_report_en.wav` · 13.4 s | Spoken field report — **input** |
-| `output_en.wav` · 52.4 s | English risk assessment — Kokoro, **7 chunks** |
-| `output_th.wav` · 208.3 s | Thai risk assessment — JaiTTS/F5, **6 chunks** |
-| `output_en.txt` / `output_th.txt` | Per-chunk text breakdown |
+| ▶︎ Play | Length | What |
+|---|---|---|
+| 🎙️ **[`input_report_en.wav`](backend/samples/input_report_en.wav)** | 13.4 s | Spoken field report — **input** |
+| 🔊 **[`output_en.wav`](backend/samples/output_en.wav)** | 52.4 s | English risk assessment — Kokoro · **7 chunks** |
+| 🔊 **[`output_th.wav`](backend/samples/output_th.wav)** | 208.3 s | Thai risk assessment — JaiTTS/F5 · **6 chunks** |
+| 📝 [`output_en.txt`](backend/samples/output_en.txt) · [`output_th.txt`](backend/samples/output_th.txt) | — | Per-chunk text breakdown |
+
+> 💡 Click any `.wav` to open GitHub's built-in audio player (or download & play locally).
 
 **One run, end to end:**
 
@@ -499,6 +509,12 @@ python3 backend/scripts/discord_logger.py   # dry-run test
 
 <div align="center">
 
-*Built for MLOps coursework · KMITL · 2026*
+### 🦠 ZoonoMoE — *surveillance that listens, reasons, and speaks back.*
+
+Built for MLOps coursework · **KMITL** · 2026 · Architecture submitted to **ICONIP 2026**
+
+<sub>ASR → NER → Router → RAG → Expert LLM → TTS · fully on-device</sub>
+
+⭐ *If this project helped, consider giving it a star.*
 
 </div>
