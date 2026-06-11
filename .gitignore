@@ -80,3 +80,4 @@ backend/samples/speedtest/
 !backend/voices/th_ref.wav
 !backend/voices/th_ref.txt
 backend/samples/compare/
+backend/samples/whitening-yv-3-grt.wav

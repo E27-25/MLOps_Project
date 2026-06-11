@@ -303,7 +303,7 @@ via vLLM, 6/6 stages green). Audio in [`backend/samples/`](backend/samples/):
 |---|---|---|
 | 🎙️ **[`input_report_en.wav`](backend/samples/input_report_en.wav)** | 13.4 s | Spoken field report — **input** |
 | 🔊 **[`output_en.wav`](backend/samples/output_en.wav)** | 52.4 s | English risk assessment — Kokoro · **7 chunks** |
-| 🔊 **[`output_th.wav`](backend/samples/output_th.wav)** | 54.3 s | Thai risk assessment — JaiTTS/F5 (public Thai ref) · **6 chunks** |
+| 🔊 **[`output_th.wav`](backend/samples/output_th.wav)** | 37.4 s | Thai risk assessment — JaiTTS/F5 (cloned voice) · **6 chunks** |
 | 📝 [`output_en.txt`](backend/samples/output_en.txt) · [`output_th.txt`](backend/samples/output_th.txt) | — | Per-chunk text breakdown |
 
 > 💡 Click any `.wav` to open GitHub's built-in audio player (or download & play locally).
@@ -318,7 +318,7 @@ input  : "Three of my chickens died overnight. Their combs were blue and
 [3] Router ✓ domain = avian_flu   (confidence 1.0, cascade stage 1)
 [4] RAG    ✓ 3 domain chunks
 [5] LLM    ✓ HPAI assessment — isolate, PPE, culling, report, human safety
-[6] TTS    ✓ EN 7 chunks / 52 s   ·   TH 6 chunks / 54 s
+[6] TTS    ✓ EN 7 chunks / 52 s   ·   TH 6 chunks / 37 s
 ```
 
 **Streaming chunking works** — `iter_sentence_chunks` (EN) and `_iter_thai_chunks`
@@ -483,7 +483,7 @@ python3 backend/scripts/discord_logger.py   # dry-run test
 | ASR latency | ~1–2 s (Whisper base) |
 | Full pipeline | ~15–20 s end-to-end |
 | TTS first chunk | ~3–5 s after LLM starts |
-| Thai TTS (JaiTTS/F5) | flow-matching; pace via `JAITTS_SPEED` (public Thai ref, default speed 0.8 + silence-trim) |
+| Thai TTS (JaiTTS/F5) | flow-matching; pace via `JAITTS_SPEED` (cloned Thai voice, default speed 1.1 + silence-trim) |
 | Concurrent users | ×3 TTS / ×2 ASR / vLLM batched |
 | Verified | A100-40 GB · Qwen3-14B/vLLM · 6/6 stages (EN + TH) |
 
