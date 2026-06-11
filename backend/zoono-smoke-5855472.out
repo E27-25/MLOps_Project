@@ -1,0 +1,149 @@
+Running "module reset". Resetting modules to system default. The following $MODULEPATH directories have been removed: None
+▶ node=x1001c2s6b0n1  TTS_LANG=en  LLM=/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/Qwen3-14B
+GPU 0: NVIDIA A100-SXM4-40GB (UUID: GPU-eb7302f1-01dc-5950-d256-35244bee67f6)
+torch 2.6.0+cu124 cuda True NVIDIA A100-SXM4-40GB
+2026-06-11 11:26:28,016 [INFO] Platform  : Linux x86_64 | Python 3.12.6
+2026-06-11 11:26:28,017 [INFO] Backend   : transformers → CUDA
+2026-06-11 11:26:28,035 [INFO] GPU       : NVIDIA A100-SXM4-40GB | VRAM 39.5 GB
+2026-06-11 11:26:28,035 [INFO] LLM model : /lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/Qwen3-14B
+2026-06-11 11:26:28,035 [INFO] Whisper   : base
+2026-06-11 11:26:28,035 [INFO] ffmpeg    : /lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/imageio_ffmpeg/binaries/ffmpeg-linux-x86_64-v7.0.2
+2026-06-11 11:26:28,035 [INFO] Triton    : OFF
+2026-06-11 11:26:28,035 [INFO] TTS lang  : en (Kokoro)
+Device set to use cpu
+2026-06-11 11:28:03,879 [INFO] Loading SentenceTransformer model from sentence-transformers/all-MiniLM-L6-v2.
+/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator LabelBinarizer from version 1.8.0 when using version 1.9.0. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+  warnings.warn(
+/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator MLPClassifier from version 1.8.0 when using version 1.9.0. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+  warnings.warn(
+2026-06-11 11:28:08,591 [INFO] Router: loaded MLP from /lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/MLOps_Project/backend/models/router.pkl
+/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator TfidfTransformer from version 1.8.0 when using version 1.9.0. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+  warnings.warn(
+/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator TfidfVectorizer from version 1.8.0 when using version 1.9.0. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+  warnings.warn(
+/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator LogisticRegression from version 1.8.0 when using version 1.9.0. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+  warnings.warn(
+/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator Pipeline from version 1.8.0 when using version 1.9.0. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
+https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
+  warnings.warn(
+2026-06-11 11:28:09,706 [INFO] Router: loaded cascade (tau=0.54, T=0.22) from /lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/MLOps_Project/backend/models/cascade.pkl
+2026-06-11 11:28:09,706 [INFO] Router: computing seed embeddings for cosine fallback...
+2026-06-11 11:28:12,473 [INFO] Router: cosine centroids ready for 6 domains
+2026-06-11 11:28:12,708 [INFO] RAG [avian_flu]: 6 chunks
+2026-06-11 11:28:12,907 [INFO] RAG [rabies]: 6 chunks
+2026-06-11 11:28:12,986 [INFO] RAG [fmd]: 6 chunks
+2026-06-11 11:28:13,050 [INFO] RAG [nipah_hendra]: 6 chunks
+2026-06-11 11:28:13,119 [INFO] RAG [leptospirosis]: 6 chunks
+2026-06-11 11:28:13,214 [INFO] RAG [general]: 5 chunks
+========================================================================
+ZoonoMoE smoke test | wav=voices/th_ref.wav | TTS_LANG=en | LLM=/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/Qwen3-14B
+========================================================================
+
+============================================================
+  ZoonoticSense — Loading Models
+============================================================
+
+[1/5] Whisper-base (ASR)...
+      ✓ ASR ready [openai-whisper + Pathumma-th]
+
+[2/5] Sentence embedder (all-MiniLM-L6-v2)...
+      ✓ Embedder ready [CPU]
+
+[3/5] MoE Router (NN classifier)...
+      ✓ Router ready | 6 domains | backend: cascade
+
+[4/5] RAG knowledge bases (FAISS)...
+      ✓ RAG ready | 6 domain indexes loaded
+
+[5/5] LLM (/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/Qwen3-14B)...
+INFO 06-11 11:28:14 [importing.py:53] Triton module has been replaced with a placeholder.
+INFO 06-11 11:28:15 [__init__.py:239] Automatically detected platform cuda.
+WARNING 06-11 11:28:36 [config.py:2972] Casting torch.bfloat16 to torch.float16.
+INFO 06-11 11:28:57 [config.py:717] This model supports multiple tasks: {'generate', 'embed', 'reward', 'score', 'classify'}. Defaulting to 'generate'.
+WARNING 06-11 11:28:57 [arg_utils.py:1658] VLLM_ATTENTION_BACKEND=XFORMERS is not supported by the V1 Engine. Falling back to V0. We recommend to remove VLLM_ATTENTION_BACKEND=XFORMERS from your config in favor of the V1 Engine.
+WARNING 06-11 11:28:57 [cuda.py:93] To see benefits of async output processing, enable CUDA graph. Since, enforce-eager is enabled, async output processor cannot be used
+INFO 06-11 11:28:57 [llm_engine.py:240] Initializing a V0 LLM engine (v0.8.5) with config: model='/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/Qwen3-14B', speculative_config=None, tokenizer='/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/Qwen3-14B', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=1024, download_dir=None, load_format=LoadFormat.AUTO, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=None, enforce_eager=True, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(guided_decoding_backend='auto', reasoning_backend=None), observability_config=ObservabilityConfig(show_hidden_metrics=False, otlp_traces_endpoint=None, collect_model_forward_time=False, collect_model_execute_time=False), seed=None, served_model_name=/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/Qwen3-14B, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=None, chunked_prefill_enabled=False, use_async_output_proc=False, disable_mm_preprocessor_cache=False, mm_processor_kwargs=None, pooler_config=None, compilation_config={"splitting_ops":[],"compile_sizes":[],"cudagraph_capture_sizes":[],"max_capture_size":0}, use_cached_outputs=False, 
+INFO 06-11 11:29:00 [cuda.py:228] Using XFormers backend.
+INFO 06-11 11:29:03 [parallel_state.py:1004] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, TP rank 0
+INFO 06-11 11:29:03 [model_runner.py:1108] Starting to load model /lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/Qwen3-14B...
+Loading safetensors checkpoint shards:   0% Completed | 0/8 [00:00<?, ?it/s]
+Loading safetensors checkpoint shards:  12% Completed | 1/8 [00:28<03:16, 28.06s/it]
+Loading safetensors checkpoint shards:  25% Completed | 2/8 [00:56<02:49, 28.30s/it]
+Loading safetensors checkpoint shards:  38% Completed | 3/8 [01:24<02:20, 28.10s/it]
+Loading safetensors checkpoint shards:  50% Completed | 4/8 [01:51<01:50, 27.56s/it]
+Loading safetensors checkpoint shards:  62% Completed | 5/8 [02:20<01:24, 28.20s/it]
+Loading safetensors checkpoint shards:  75% Completed | 6/8 [02:46<00:54, 27.48s/it]
+Loading safetensors checkpoint shards:  88% Completed | 7/8 [02:58<00:22, 22.42s/it]
+Loading safetensors checkpoint shards: 100% Completed | 8/8 [03:31<00:00, 25.72s/it]
+Loading safetensors checkpoint shards: 100% Completed | 8/8 [03:31<00:00, 26.42s/it]
+
+INFO 06-11 11:32:36 [loader.py:458] Loading weights took 211.48 seconds
+INFO 06-11 11:32:36 [model_runner.py:1140] Model loading took 27.5185 GiB and 213.195822 seconds
+INFO 06-11 11:32:41 [worker.py:287] Memory profiling takes 4.35 seconds
+INFO 06-11 11:32:41 [worker.py:287] the current vLLM instance can use total_gpu_memory (39.50GiB) x gpu_memory_utilization (0.92) = 36.34GiB
+INFO 06-11 11:32:41 [worker.py:287] model weights take 27.52GiB; non_torch_memory takes 0.09GiB; PyTorch activation peak memory takes 1.40GiB; the rest of the memory reserved for KV Cache is 7.32GiB.
+INFO 06-11 11:32:41 [executor_base.py:112] # cuda blocks: 2998, # CPU blocks: 1638
+INFO 06-11 11:32:41 [executor_base.py:117] Maximum concurrency for 1024 tokens per request: 46.84x
+INFO 06-11 11:32:44 [llm_engine.py:437] init engine (profile, create kv cache, warmup model) took 7.77 seconds
+/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/torch/nn/modules/rnn.py:123: UserWarning: dropout option adds dropout after all but last recurrent layer, so non-zero dropout expects num_layers greater than 1, but got dropout=0.2 and num_layers=1
+  warnings.warn(
+/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/torch/nn/utils/weight_norm.py:143: FutureWarning: `torch.nn.utils.weight_norm` is deprecated in favor of `torch.nn.utils.parametrizations.weight_norm`.
+  WeightNorm.apply(module, name, dim)
+2026-06-11 11:33:19,546 [INFO] Database connected and tables ready
+2026-06-11 11:33:19,546 [INFO] CORS origins : ['http://localhost:3000'] + *.vercel.app (regex)
+/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+2026-06-11 11:33:19,599 [INFO] HTTP Request: GET http://testserver/health "HTTP/1.1 200 OK"
+2026-06-11 11:33:23,104 [INFO] ASR detected language: en (conf=0.44)
+/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/whisper/transcribe.py:130: UserWarning: Performing inference on CPU when CUDA is available
+  warnings.warn("Performing inference on CPU when CUDA is available")
+/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/whisper/transcribe.py:132: UserWarning: FP16 is not supported on CPU; using FP32 instead
+  warnings.warn("FP16 is not supported on CPU; using FP32 instead")
+2026-06-11 11:33:24,335 [INFO] ASR (4.03s): Nice one, why didn't you tell me that? Let me go put the reduced dimension. Um, that was a big gun.
+2026-06-11 11:33:24,337 [INFO] HTTP Request: POST http://testserver/upload "HTTP/1.1 200 OK"
+      ✓ LLM ready [vllm [CUDA+compressed-tensors]]
+
+[6/6] Kokoro TTS...
+WARNING: Defaulting repo_id to hexgrad/Kokoro-82M. Pass repo_id='hexgrad/Kokoro-82M' to suppress this warning.
+WARNING: Defaulting repo_id to hexgrad/Kokoro-82M. Pass repo_id='hexgrad/Kokoro-82M' to suppress this warning.
+WARNING: Defaulting repo_id to hexgrad/Kokoro-82M. Pass repo_id='hexgrad/Kokoro-82M' to suppress this warning.
+      ✓ TTS ready [CPU] × 3 instances
+
+============================================================
+  All systems nominal. Starting server...
+============================================================
+
+  ✓ 0. boot app + load models    419.07s  /health -> 200 {'status': 'ok', 'llm_backend': 'vllm [CUDA+compressed-tensors]', 'asr_backend':
+  ✓ 1. ASR /upload                 4.74s  transcript[99 chars]: "Nice one, why didn't you tell me that? Let me go put the red"
+INFO 06-11 11:33:24 [async_llm_engine.py:211] Added request 4cca6fde-c0ea-41cc-bbdc-68093a61f6ea.
+INFO 06-11 11:33:24 [metrics.py:486] Avg prompt throughput: 4.5 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 1 reqs, Swapped: 0 reqs, Pending: 0 reqs, GPU KV cache usage: 0.4%, CPU KV cache usage: 0.0%.
+INFO 06-11 11:33:26 [async_llm_engine.py:179] Finished request 4cca6fde-c0ea-41cc-bbdc-68093a61f6ea.
+2026-06-11 11:33:26,863 [INFO] NER (2.52s): {'species': [], 'symptoms': [], 'mortality_count': None, 'affected_count': None, 'location': None, 'timeframe': None, 'reporter_role': 'unknown', 'raw_summary': 'The report contains unclear and fragmented statements without specific information about animal health or disease.'}
+2026-06-11 11:33:27,165 [INFO] Router (0.3s): domain=rabies conf=0.98
+Batches:   0%|          | 0/1 [00:00<?, ?it/s]Batches: 100%|██████████| 1/1 [00:00<00:00,  9.80it/s]Batches: 100%|██████████| 1/1 [00:00<00:00,  9.78it/s]
+2026-06-11 11:33:27,344 [INFO] RAG (0.18s): 3 chunks from domain=rabies
+2026-06-11 11:33:27,346 [INFO] HTTP Request: POST http://testserver/analyze "HTTP/1.1 200 OK"
+  ✓ 2-4. NER+Router+RAG /analyze   3.01s  domain=rabies conf=0.976 stage=1 rag_chunks=3 epi_keys=['species', 'symptoms', 'mortality_count', 'affected_count', 'location', 'timeframe', 'reporter_role', 'raw_summary']
+INFO 06-11 11:33:27 [async_llm_engine.py:211] Added request a994f038-2114-4ef8-be69-9225a9f3b1a3.
+INFO 06-11 11:33:29 [metrics.py:486] Avg prompt throughput: 101.6 tokens/s, Avg generation throughput: 28.4 tokens/s, Running: 1 reqs, Swapped: 0 reqs, Pending: 0 reqs, GPU KV cache usage: 1.2%, CPU KV cache usage: 0.0%.
+INFO 06-11 11:33:32 [async_llm_engine.py:179] Finished request a994f038-2114-4ef8-be69-9225a9f3b1a3.
+2026-06-11 11:33:42,073 [INFO] HTTP Request: POST http://testserver/stream "HTTP/1.1 200 OK"
+  ✓ 5-6. Expert LLM + TTS /stream  14.74s  text_chunks=6 audio_chunks=6 saved=/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/MLOps_Project/backend/scripts/eval_out/smoke_tts_en.wav
+
+========================================================================
+   PASS  0. boot app + load models
+   PASS  1. ASR /upload
+   PASS  2-4. NER+Router+RAG /analyze
+   PASS  5-6. Expert LLM + TTS /stream
+
+  4/4 stages passed, 0 failed
+========================================================================
+2026-06-11 11:33:42,687 [ERROR] Task was destroyed but it is pending!
+task: <Task pending name='Task-18' coro=<AsyncLLMEngine.run_engine_loop() running at /lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/vllm/engine/async_llm_engine.py:842> wait_for=<Future pending cb=[Task.task_wakeup()]> cb=[_log_task_completion(error_callback=<bound method...7f0bac405af0>>)() at /lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/vllm/engine/async_llm_engine.py:48, shield.<locals>._inner_done_callback() at /usr/lib64/python3.12/asyncio/tasks.py:905]>
+[rank0]:[W611 11:33:42.288218798 ProcessGroupNCCL.cpp:1496] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+▶ smoke_test exit code (failed stages): 0

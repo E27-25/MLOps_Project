@@ -229,8 +229,9 @@ else:
         _eargs = AsyncEngineArgs(
             model=LLM_MODEL,
             dtype="float16",
-            max_model_len=1024,
-            gpu_memory_utilization=0.85,
+            max_model_len=int(os.getenv("VLLM_MAX_MODEL_LEN", "1024")),
+            gpu_memory_utilization=float(os.getenv("VLLM_GPU_MEM_UTIL", "0.85")),
+            enforce_eager=os.getenv("VLLM_ENFORCE_EAGER", "false").lower() == "true",
         )
         LLM_BACKEND = "vllm [CUDA+compressed-tensors]"
     else:
@@ -740,7 +741,8 @@ async def upload(audio: UploadFile = File(...)):
         tmp.write(await audio.read())
         tmp_path = tmp.name
 
-    wav_path = tmp_path[:-len(orig_ext)] + '.wav'
+    # distinct suffix so ffmpeg in!=out even when the upload is already .wav
+    wav_path = tmp_path[:-len(orig_ext)] + '.16k.wav'
     try:
         subprocess.run(
             [FFMPEG, '-y', '-i', tmp_path, '-ar', '16000', '-ac', '1', wav_path],

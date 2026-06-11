@@ -63,3 +63,6 @@ frontend/.env.local
 
 # Triton model weights (baked into image)
 triton_models/**/1/__pycache__/
+
+# Personal reference voice clips (do not publish)
+backend/voices/
