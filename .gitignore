@@ -25,6 +25,7 @@ env/
 *.gguf
 backend/models/*.pkl
 !backend/models/router.pkl
+!backend/models/cascade.pkl
 !backend/models/router_meta.json
 
 # FAISS indexes (regeneratable)
