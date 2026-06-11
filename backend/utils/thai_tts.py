@@ -105,10 +105,10 @@ class ThaiTTS:
         vocoder: str = _DEF_VOCODER,
         cfg_strength: float = 2.5,
         nfe_step: int = 32,
-        speed: float = 1.1,         # paired with the shipped Thai ref
-                                    # `voices/th_ref.wav` (normal lecture pace).
-                                    # F5 clones the ref's pace — for a brisk ref
-                                    # use lower. Tune via JAITTS_SPEED.
+        speed: float = 0.9,         # paired with the shipped Thai ref
+                                    # `voices/th_ref.wav` — a calm, clear pace for
+                                    # spoken advice. F5 clones the ref's pace.
+                                    # Tune via JAITTS_SPEED (↑ = faster).
         silence_threshold: int = -45,
     ):
         # `flowtts` lives in the thonburian-tts repo as a namespace package, not
