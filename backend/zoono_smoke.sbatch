@@ -40,6 +40,8 @@ export TTS_LANG="${TTS_LANG:-en}"
 export JAITTS_REF_VOICE="${JAITTS_REF_VOICE:-$SLURM_SUBMIT_DIR/voices/th_ref.wav}"
 # flowtts (JaiTTS) lives as a namespace package in the thonburian-tts checkout
 export THONBURIAN_TTS_DIR="${THONBURIAN_TTS_DIR:-/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/thonburian-tts}"
+# provide ref transcript so F5 skips auto-transcribe (an uncached ASR fetch)
+export JAITTS_REF_TEXT="${JAITTS_REF_TEXT:-$(cat "$SLURM_SUBMIT_DIR/voices/th_ref.txt" 2>/dev/null)}"
 
 echo "▶ node=$(hostname)  TTS_LANG=$TTS_LANG  LLM=$LLM_MODEL"
 nvidia-smi -L || true
