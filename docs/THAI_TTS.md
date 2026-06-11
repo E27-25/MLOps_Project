@@ -74,6 +74,25 @@ sample with minimal silence; then `JAITTS_SPEED=1.0–1.1` sounds natural. A
 slow/pause-heavy ref needs ~1.6 to compensate. Tune with
 `export JAITTS_SPEED=1.0`.
 
+## ⭐ Use a **Thai** reference for natural prosody
+
+JaiTTS is a **Thai** F5 model. If the reference clip is someone speaking
+*another language* (e.g. English), the timbre is cloned but the **prosody and
+pronunciation come out off** ("weird"), because the model forces Thai onto a
+non-Thai speaking pattern. For the most natural result, use **5–8 s of clear
+Thai speech** as the reference, with a matching `JAITTS_REF_TEXT`.
+
+> Two musts for a good reference: (1) it is **Thai**, and (2) `JAITTS_REF_TEXT`
+> **matches** what's actually said. A wrong/garbled ref text makes F5 collapse
+> into mostly-silence garbage.
+
+## 🔇 Silence handling
+
+F5 pads each utterance with silence, so concatenated chunks otherwise sound
+broken (long dead-air). `_tighten_wav_b64` trims leading/trailing silence and
+caps internal gaps (default 0.3 s, set `JAITTS_MAX_GAP`) — this cut the demo
+from 42 % → 26 % silence.
+
 ## 📝 Notes & limits
 
 - **Reference voice is mandatory** — F5-TTS is voice-cloning; without

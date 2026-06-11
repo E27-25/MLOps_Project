@@ -36,6 +36,62 @@ _DEF_VOCAB      = os.getenv("JAITTS_VOCAB",      "hf://JTS-AI/JaiTTS-F5TTS/vocab
 _DEF_VOCODER    = os.getenv("JAITTS_VOCODER",    "vocos")
 
 
+def _tighten_wav_b64(path: str, thresh: float = 0.012,
+                     pad: float = 0.10, max_gap: float = 0.30) -> str:
+    """Trim leading/trailing silence and cap long internal gaps → base64 WAV.
+
+    F5 tends to pad each utterance with long silence; concatenated chunks then
+    sound broken (dead air). This keeps speech continuous. Tunable via
+    ``JAITTS_MAX_GAP`` (seconds). On any error, returns the file untouched.
+    """
+    import io
+    import numpy as np
+    import soundfile as sf
+    try:
+        max_gap = float(os.getenv("JAITTS_MAX_GAP", max_gap))
+        data, sr = sf.read(path)
+        if data.ndim > 1:
+            data = data.mean(axis=1)
+        fl = max(1, int(0.02 * sr))                       # 20 ms frames
+        n = len(data) // fl
+        if n < 2:
+            raise ValueError("clip too short")
+        rms = np.sqrt((data[:n * fl].reshape(n, fl) ** 2).mean(axis=1))
+        voiced = rms > thresh
+        if not voiced.any():
+            raise ValueError("all silence")
+        keep = voiced.copy()
+        gap_f = int(round(max_gap / 0.02))
+        i = 0
+        while i < n:
+            if voiced[i]:
+                i += 1
+                continue
+            j = i
+            while j < n and not voiced[j]:
+                j += 1
+            if i == 0 or j == n:                          # leading / trailing
+                keep[i:j] = False
+            else:                                         # internal gap → cap it
+                keep[i:i + min(j - i, gap_f)] = True
+                keep[i + min(j - i, gap_f):j] = False
+            i = j
+        pad_f = int(round(pad / 0.02))                    # re-add a little pad
+        first, last = np.argmax(voiced), n - 1 - np.argmax(voiced[::-1])
+        for k in range(max(0, first - pad_f), first):
+            keep[k] = True
+        for k in range(last + 1, min(n, last + 1 + pad_f)):
+            keep[k] = True
+        idx = np.repeat(keep, fl)
+        out = data[:n * fl][idx]
+        buf = io.BytesIO()
+        sf.write(buf, out, sr, format="WAV")
+        return base64.b64encode(buf.getvalue()).decode()
+    except Exception:                                     # fall back to raw file
+        with open(path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+
+
 class ThaiTTS:
     """JaiTTS / F5-TTS synthesiser exposing a Kokoro-compatible ``synth_b64``."""
 
@@ -49,9 +105,9 @@ class ThaiTTS:
         vocoder: str = _DEF_VOCODER,
         cfg_strength: float = 2.5,
         nfe_step: int = 32,
-        speed: float = 1.1,         # F5 clones the ref's pace: with a normally-
-                                    # spoken reference, ~1.0–1.1 ≈ natural Thai
-                                    # (4.6–5 chars/sec). A slow ref needs ~1.6.
+        speed: float = 1.0,         # F5 clones the ref's pace; silence is trimmed
+                                    # post-synth (_tighten_wav_b64), so 1.0 with a
+                                    # normally-spoken ref ≈ natural Thai (~5 c/s).
                                     # Tune via JAITTS_SPEED.
         silence_threshold: int = -45,
     ):
@@ -113,9 +169,7 @@ class ThaiTTS:
                 kwargs["ref_text"] = self.ref_text
             with self._lock:                    # F5 pipeline is not re-entrant
                 self.pipeline(**kwargs)
-            with open(out_path, "rb") as f:
-                data = f.read()
-            return base64.b64encode(data).decode()
+            return _tighten_wav_b64(out_path)
         except Exception as e:                  # noqa: BLE001 — never break the SSE stream
             log.error("JaiTTS synth error: %s", e)
             return None
