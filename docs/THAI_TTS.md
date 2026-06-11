@@ -47,12 +47,12 @@ python backend/app.py
 | Variable | Default | Purpose |
 |---|---|---|
 | `TTS_LANG` | `en` | `th` = JaiTTS/F5 (Thai) · `en` = Kokoro (English) |
-| `JAITTS_REF_VOICE` | `backend/voices/th_ref.wav` | **Required.** Reference voice clip to clone |
+| `JAITTS_REF_VOICE` | `backend/voices/th_ref.wav` | Reference clip — repo ships a public Thai sample; swap for your own |
 | `JAITTS_REF_TEXT` | _(empty)_ | Transcript of the reference clip (optional, better prosody) |
 | `JAITTS_CHECKPOINT` | `hf://JTS-AI/JaiTTS-F5TTS/model.pt` | F5 checkpoint |
 | `JAITTS_VOCAB` | `hf://JTS-AI/JaiTTS-F5TTS/vocab.txt` | vocab file |
 | `JAITTS_VOCODER` | `vocos` | neural vocoder |
-| `JAITTS_SPEED` | `1.1` | speech-rate multiplier — depends on the ref's pace (see below) |
+| `JAITTS_SPEED` | `0.8` | speech-rate multiplier — depends on the ref's pace (see below) |
 | `JAITTS_NFE_STEP` | `32` | flow steps — ↓ = faster synth, slightly lower quality |
 | `JAITTS_CFG` | `2.5` | classifier-free guidance strength |
 
