@@ -76,3 +76,4 @@ backend/temp/
 backend/prep_*.log
 backend/vllm_install.log
 backend/tfx_pin.log
+backend/samples/speedtest/

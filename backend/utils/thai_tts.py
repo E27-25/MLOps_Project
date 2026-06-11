@@ -49,7 +49,9 @@ class ThaiTTS:
         vocoder: str = _DEF_VOCODER,
         cfg_strength: float = 2.5,
         nfe_step: int = 32,
-        speed: float = 1.0,
+        speed: float = 1.6,         # ~4.6 chars/sec (natural Thai); F5 clones the
+                                    # ref's pace, so a slow ref otherwise drags.
+                                    # Tune via JAITTS_SPEED (1.6≈natural, 2.0=brisk)
         silence_threshold: int = -45,
     ):
         # `flowtts` lives in the thonburian-tts repo as a namespace package, not
@@ -78,11 +80,13 @@ class ThaiTTS:
             vocoder=vocoder,
             device=device,
         )
+        # env overrides for live tuning without code changes
+        self.speed = float(os.getenv("JAITTS_SPEED", speed))
         audio_config = AudioConfig(
-            silence_threshold=silence_threshold,
-            cfg_strength=cfg_strength,
-            nfe_step=nfe_step,
-            speed=speed,
+            silence_threshold=int(os.getenv("JAITTS_SILENCE_DB", silence_threshold)),
+            cfg_strength=float(os.getenv("JAITTS_CFG", cfg_strength)),
+            nfe_step=int(os.getenv("JAITTS_NFE_STEP", nfe_step)),
+            speed=self.speed,
         )
         self.pipeline = FlowTTSPipeline(
             model_config=model_config,
@@ -100,7 +104,10 @@ class ThaiTTS:
             return None
         out_path = tempfile.mktemp(suffix=".wav")
         try:
-            kwargs = dict(ref_voice=self.ref_voice, text=text, output_file=out_path)
+            # NOTE: flowtts passes the *call-time* speed to inference (not the
+            # AudioConfig), so it must be set here to take effect.
+            kwargs = dict(ref_voice=self.ref_voice, text=text,
+                          output_file=out_path, speed=self.speed)
             if self.ref_text:
                 kwargs["ref_text"] = self.ref_text
             with self._lock:                    # F5 pipeline is not re-entrant

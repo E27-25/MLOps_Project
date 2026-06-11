@@ -52,6 +52,25 @@ python backend/app.py
 | `JAITTS_CHECKPOINT` | `hf://JTS-AI/JaiTTS-F5TTS/model.pt` | F5 checkpoint |
 | `JAITTS_VOCAB` | `hf://JTS-AI/JaiTTS-F5TTS/vocab.txt` | vocab file |
 | `JAITTS_VOCODER` | `vocos` | neural vocoder |
+| `JAITTS_SPEED` | `1.6` | speech-rate multiplier (1.6 ≈ natural Thai, 2.0 = brisk) |
+| `JAITTS_NFE_STEP` | `32` | flow steps — ↓ = faster synth, slightly lower quality |
+| `JAITTS_CFG` | `2.5` | classifier-free guidance strength |
+
+## 🗣️ Speaking rate (avoid the "slow/dragged" voice)
+
+F5-TTS **clones the reference clip's pace** — a slow or pause-heavy reference
+makes the output drag. Measured on the default reference:
+
+| `JAITTS_SPEED` | chars/sec | feel |
+|---|---|---|
+| 1.0 | 2.9 | 🐢 too slow |
+| 1.3 | 3.7 | still slow |
+| **1.6 (default)** | **4.6** | ✅ natural |
+| 2.0 | 5.8 | brisk |
+
+Tune with `export JAITTS_SPEED=1.8`. The cleanest fix is also to use a **short,
+clearly-spoken reference clip** (3–8 s, minimal silence) — the closer the ref's
+pace is to natural, the better, since the clone inherits it.
 
 ## 📝 Notes & limits
 
