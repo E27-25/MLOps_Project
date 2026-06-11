@@ -1,0 +1,12 @@
+# ZoonoMoE — Thai TTS (JaiTTS / F5-TTS) extra dependencies
+# Only needed when running with TTS_LANG=th. Install on top of requirements.txt:
+#     pip install -r requirements-thai.txt
+# Also requires a system ffmpeg:  apt install -y ffmpeg
+#
+# Heavy + GPU-recommended. Keeps the default English (Kokoro) image lean.
+
+f5-tts>=0.1.0                 # F5-TTS flow-matching TTS backbone
+flowtts @ git+https://github.com/biodatlab/thonburian-tts.git   # JaiTTS pipeline (flowtts.inference)
+cached-path>=1.6.0            # resolves hf:// checkpoint URIs
+vocos>=0.1.0                  # neural vocoder used by JaiTTS
+librosa>=0.10.0               # audio I/O / resampling

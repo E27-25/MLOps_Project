@@ -69,6 +69,14 @@ WHISPER_SIZE = os.getenv("WHISPER_SIZE", "base")
 PORT         = int(os.getenv("PORT", 7860))
 DEBUG        = os.getenv("DEBUG", "false").lower() == "true"
 
+# ── TTS language ─────────────────────────────────────────────────────────────
+#   "en" → Kokoro (English voices)   |   "th" → JaiTTS / F5-TTS (Thai)
+#   Thai mode also switches the expert LLM to answer in Thai (see THAI_DIRECTIVE)
+#   and preserves Thai characters through clean_for_tts().
+TTS_LANG         = os.getenv("TTS_LANG", "en").lower()
+JAITTS_REF_VOICE = os.getenv("JAITTS_REF_VOICE", str(BASE_DIR / "voices" / "th_ref.wav"))
+JAITTS_REF_TEXT  = os.getenv("JAITTS_REF_TEXT", "")
+
 if USE_MLX:
     _default_llm = "mlx-community/Qwen3-4B-4bit"
 elif DEVICE == "cuda":
@@ -94,6 +102,7 @@ log.info(f"LLM model : {LLM_MODEL}")
 log.info(f"Whisper   : {WHISPER_SIZE}")
 log.info(f"ffmpeg    : {FFMPEG}")
 log.info(f"Triton    : {'ON @ ' + TRITON_URL if USE_TRITON else 'OFF'}")
+log.info(f"TTS lang  : {TTS_LANG}{' (JaiTTS/F5)' if TTS_LANG == 'th' else ' (Kokoro)'}")
 
 # ── Triton client + helpers ───────────────────────────────────────────────
 if USE_TRITON:
@@ -252,13 +261,24 @@ else:
             return out_text
 print(f"      ✓ LLM ready [{LLM_BACKEND}]")
 
-# ── 6. TTS (Kokoro) ─────────────────────────────────────────────────────────
-print("\n[6/6] Kokoro TTS...")
+# ── 6. TTS (Kokoro / JaiTTS) ─────────────────────────────────────────────────
+print(f"\n[6/6] {'JaiTTS (Thai)' if TTS_LANG == 'th' else 'Kokoro'} TTS...")
 import soundfile as sf
 import queue as _queue
+tts_pool = None        # Kokoro pool (English path)
+thai_tts = None        # JaiTTS instance (Thai path)
 if USE_TRITON:
-    tts_pool = None
+    if TTS_LANG == "th":
+        log.warning("USE_TRITON serves English Kokoro; Thai TTS needs USE_TRITON=false. Ignoring TTS_LANG=th.")
     print("      ✓ TTS ready [TRITON × 3 instances]")
+elif TTS_LANG == "th":
+    from utils.thai_tts import ThaiTTS
+    thai_tts = ThaiTTS(
+        device=DEVICE,
+        ref_voice=JAITTS_REF_VOICE,
+        ref_text=JAITTS_REF_TEXT or None,
+    )
+    print(f"      ✓ TTS ready [JaiTTS/F5 on {DEVICE.upper()}]")
 else:
     from kokoro import KPipeline
     _tts_device = "cpu" if DEVICE == "cuda" else DEVICE
@@ -395,6 +415,14 @@ If this appears to be a genuine disease concern, tell them you can do a proper a
 
 Keep responses SHORT — 2 to 3 sentences only. Be warm, not clinical. Speak plainly. No bullet points, no lists."""
 
+# When TTS_LANG=th, force the expert LLM to answer in Thai so JaiTTS can speak it.
+# Knowledge-base context stays English; Qwen3 is multilingual and translates as it answers.
+THAI_DIRECTIVE = (
+    "\n\nสำคัญที่สุด: ตอบกลับเป็นภาษาไทยทั้งหมด ใช้ภาษาพูดที่เป็นธรรมชาติ ฟังลื่นหู "
+    "เหมาะกับการอ่านออกเสียง ห้ามใช้ภาษาอังกฤษ ยกเว้นชื่อโรคหรือศัพท์เทคนิคที่ไม่มีคำแปลไทย "
+    "ห้ามใช้สัญลักษณ์ markdown หรือหัวข้อย่อย เขียนเป็นประโยคต่อเนื่องเหมือนคุยโทรศัพท์"
+)
+
 
 def _strip_think_stream(token_iter):
     buf    = ""
@@ -451,6 +479,9 @@ def stream_expert_response(domain: str, epi_fields: dict, rag_chunks: list):
             {"role": "system", "content": system_prompt},
             {"role": "user",   "content": "Please assess this zoonotic event."},
         ]
+    if TTS_LANG == "th":
+        messages[0]["content"] += THAI_DIRECTIVE   # make Qwen answer in Thai
+
     max_tok = 180 if is_off_topic else 650
 
     if USE_MLX:
@@ -531,15 +562,52 @@ def clean_for_tts(text: str) -> str:
     text = re.sub(r'^\s*[-*]\s+', '', text, flags=re.MULTILINE)
     text = re.sub(r'^\s*\d+\.\s+', '', text, flags=re.MULTILINE)
     text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
-    text = text.replace('\u2014', ', ').replace('\u2013', ' to ')
     text = text.replace('\u2026', '...')
-    for pat, rep in _ABBREV.items():
-        text = re.sub(pat, rep, text)
-    text = re.sub(r'[^\x00-\x7F]+', ' ', text)
+    if TTS_LANG == "th":
+        # Thai path: keep Thai block + basic ASCII; the English abbrev/ASCII-only
+        # passes below would otherwise delete every Thai character.
+        text = text.replace('\u2014', ' ').replace('\u2013', ' ')
+        text = re.sub(r'[^\u0e00-\u0e7f\x20-\x7E\n]+', ' ', text)
+    else:
+        text = text.replace('\u2014', ', ').replace('\u2013', ' to ')
+        for pat, rep in _ABBREV.items():
+            text = re.sub(pat, rep, text)
+        text = re.sub(r'[^\x00-\x7F]+', ' ', text)
     return re.sub(r'  +', ' ', text).strip()
 
 
+def _iter_thai_chunks(token_iter, max_chars: int = 140):
+    """Chunk a Thai token stream for streaming TTS.
+
+    Thai rarely uses ``. ! ?`` between sentences, so we flush on newlines or
+    Latin sentence punctuation when present, otherwise on a length cap at the
+    last space — keeping each JaiTTS call short enough for low latency.
+    """
+    buf = ""
+    for tok in token_iter:
+        buf += tok
+        m = re.search(r'[\n.!?]', buf)
+        while m and m.start() >= 1:
+            chunk = buf[:m.end()].strip(" \n")
+            buf   = buf[m.end():]
+            if len(chunk) >= 10:
+                yield chunk
+            m = re.search(r'[\n.!?]', buf)
+        if len(buf) >= max_chars:
+            sp    = buf.rfind(' ', 0, max_chars)
+            cut   = sp if sp > 20 else max_chars
+            chunk = buf[:cut].strip()
+            buf   = buf[cut:]
+            if chunk:
+                yield chunk
+    if buf.strip():
+        yield buf.strip()
+
+
 def iter_sentence_chunks(token_iter, min_words: int = 5):
+    if TTS_LANG == "th":
+        yield from _iter_thai_chunks(token_iter)
+        return
     buf = ""
     for tok in token_iter:
         buf += tok
@@ -561,6 +629,8 @@ def synth_audio_b64(text: str, voice: str = "af_heart") -> str | None:
         return None
     if USE_TRITON:
         return _synth_triton(text, voice)
+    if thai_tts is not None:            # JaiTTS/F5 — voice comes from ref clip, not `voice`
+        return thai_tts.synth_b64(text)
     pipe = tts_pool.get()
     try:
         samples = []
