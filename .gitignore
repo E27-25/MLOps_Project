@@ -66,3 +66,7 @@ triton_models/**/1/__pycache__/
 
 # Personal reference voice clips (do not publish)
 backend/voices/
+
+# SLURM job logs
+backend/zoono-smoke-*.out
+*.out

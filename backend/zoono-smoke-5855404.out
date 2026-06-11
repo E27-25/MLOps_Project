@@ -1,83 +1,0 @@
-Running "module reset". Resetting modules to system default. The following $MODULEPATH directories have been removed: None
-▶ node=x1000c2s3b0n0  TTS_LANG=en  LLM=Qwen/Qwen3-14B
-GPU 0: NVIDIA A100-SXM4-40GB (UUID: GPU-468a51be-d67a-82bf-7542-710feb1db215)
-torch 2.6.0+cu124 cuda True NVIDIA A100-SXM4-40GB
-2026-06-11 11:04:12,403 [INFO] Platform  : Linux x86_64 | Python 3.12.6
-2026-06-11 11:04:12,404 [INFO] Backend   : transformers → CUDA
-2026-06-11 11:04:12,423 [INFO] GPU       : NVIDIA A100-SXM4-40GB | VRAM 39.5 GB
-2026-06-11 11:04:12,423 [INFO] LLM model : Qwen/Qwen3-14B
-2026-06-11 11:04:12,423 [INFO] Whisper   : base
-2026-06-11 11:04:12,423 [INFO] ffmpeg    : /lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/imageio_ffmpeg/binaries/ffmpeg-linux-x86_64-v7.0.2
-2026-06-11 11:04:12,423 [INFO] Triton    : OFF
-2026-06-11 11:04:12,423 [INFO] TTS lang  : en (Kokoro)
-========================================================================
-ZoonoMoE smoke test | wav=voices/th_ref.wav | TTS_LANG=en | LLM=Qwen/Qwen3-14B
-========================================================================
-
-============================================================
-  ZoonoticSense — Loading Models
-============================================================
-
-[1/5] Whisper-base (ASR)...
-Loading weights:   0%|          | 0/947 [00:00<?, ?it/s]Loading weights:  10%|█         | 96/947 [00:00<00:00, 870.82it/s]Loading weights:  19%|█▉        | 184/947 [00:00<00:01, 402.31it/s]Loading weights:  25%|██▌       | 237/947 [00:00<00:01, 422.67it/s]Loading weights:  30%|███       | 288/947 [00:00<00:02, 294.29it/s]Loading weights:  34%|███▍      | 326/947 [00:00<00:02, 291.11it/s]Loading weights:  38%|███▊      | 361/947 [00:01<00:02, 247.89it/s]Loading weights:  41%|████      | 390/947 [00:01<00:02, 249.81it/s]Loading weights:  44%|████▍     | 418/947 [00:01<00:02, 234.07it/s]Loading weights:  47%|████▋     | 443/947 [00:01<00:02, 225.85it/s]Loading weights:  51%|█████▏    | 486/947 [00:01<00:01, 241.90it/s]Loading weights:  56%|█████▌    | 527/947 [00:01<00:01, 275.23it/s]Loading weights:  59%|█████▉    | 560/947 [00:01<00:01, 285.61it/s]Loading weights:  66%|██████▌   | 621/947 [00:02<00:00, 361.15it/s]Loading weights:  70%|██████▉   | 659/947 [00:02<00:00, 345.17it/s]Loading weights:  77%|███████▋  | 731/947 [00:02<00:00, 434.96it/s]Loading weights:  82%|████████▏ | 777/947 [00:02<00:00, 433.96it/s]Loading weights: 100%|██████████| 947/947 [00:02<00:00, 387.79it/s]
-2026-06-11 11:05:40,971 [INFO] Loading SentenceTransformer model from sentence-transformers/all-MiniLM-L6-v2.
-      ✓ ASR ready [openai-whisper + Pathumma-th]
-
-[2/5] Sentence embedder (all-MiniLM-L6-v2)...
-Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights:  31%|███       | 32/103 [00:00<00:00, 277.16it/s]Loading weights:  64%|██████▍   | 66/103 [00:00<00:00, 299.10it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 419.03it/s]
-/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator LabelBinarizer from version 1.8.0 when using version 1.9.0. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
-https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
-  warnings.warn(
-/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator MLPClassifier from version 1.8.0 when using version 1.9.0. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
-https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
-  warnings.warn(
-2026-06-11 11:05:42,263 [INFO] Router: loaded MLP from /lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/MLOps_Project/backend/models/router.pkl
-/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator TfidfTransformer from version 1.8.0 when using version 1.9.0. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
-https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
-  warnings.warn(
-/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator TfidfVectorizer from version 1.8.0 when using version 1.9.0. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
-https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
-  warnings.warn(
-/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator LogisticRegression from version 1.8.0 when using version 1.9.0. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
-https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
-  warnings.warn(
-/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/zoono-smoke-env/lib64/python3.12/site-packages/sklearn/base.py:525: InconsistentVersionWarning: Trying to unpickle estimator Pipeline from version 1.8.0 when using version 1.9.0. This might lead to breaking code or invalid results. Use at your own risk. For more info please refer to:
-https://scikit-learn.org/stable/model_persistence.html#security-maintainability-limitations
-  warnings.warn(
-2026-06-11 11:05:43,348 [INFO] Router: loaded cascade (tau=0.54, T=0.22) from /lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/MLOps_Project/backend/models/cascade.pkl
-2026-06-11 11:05:43,348 [INFO] Router: computing seed embeddings for cosine fallback...
-2026-06-11 11:05:45,766 [INFO] Router: cosine centroids ready for 6 domains
-2026-06-11 11:05:46,157 [INFO] RAG [avian_flu]: 6 chunks
-2026-06-11 11:05:46,362 [INFO] RAG [rabies]: 6 chunks
-2026-06-11 11:05:46,450 [INFO] RAG [fmd]: 6 chunks
-2026-06-11 11:05:46,529 [INFO] RAG [nipah_hendra]: 6 chunks
-2026-06-11 11:05:46,588 [INFO] RAG [leptospirosis]: 6 chunks
-2026-06-11 11:05:46,676 [INFO] RAG [general]: 5 chunks
-Traceback (most recent call last):
-  File "/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/MLOps_Project/backend/scripts/smoke_test.py", line 46, in stage
-    info = fn()
-           ^^^^
-  File "/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/MLOps_Project/backend/scripts/smoke_test.py", line 66, in _boot
-    import app as appmod
-  File "/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/MLOps_Project/backend/app.py", line 221, in <module>
-    from vllm import AsyncLLMEngine, AsyncEngineArgs, SamplingParams as VLLMSamplingParams
-ModuleNotFoundError: No module named 'vllm'
-      ✓ Embedder ready [CPU]
-
-[3/5] MoE Router (NN classifier)...
-      ✓ Router ready | 6 domains | backend: cascade
-
-[4/5] RAG knowledge bases (FAISS)...
-      ✓ RAG ready | 6 domain indexes loaded
-
-[5/5] LLM (Qwen/Qwen3-14B)...
-  ✗ 0. boot app + load models    102.15s  ModuleNotFoundError: No module named 'vllm'
-
-‼ App failed to boot — cannot continue.
-
-========================================================================
-   FAIL  0. boot app + load models
-
-  0/1 stages passed, 1 failed
-========================================================================
-▶ smoke_test exit code (failed stages): 1
