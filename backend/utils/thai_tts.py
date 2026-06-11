@@ -22,6 +22,7 @@ instance guarded by a lock (unlike the 3-way Kokoro pool).
 from __future__ import annotations
 
 import os
+import sys
 import base64
 import logging
 import tempfile
@@ -51,6 +52,11 @@ class ThaiTTS:
         speed: float = 1.0,
         silence_threshold: int = -45,
     ):
+        # `flowtts` lives in the thonburian-tts repo as a namespace package, not
+        # a pip module — add its checkout to sys.path (set THONBURIAN_TTS_DIR).
+        _src = os.getenv("THONBURIAN_TTS_DIR")
+        if _src and _src not in sys.path:
+            sys.path.insert(0, _src)
         # Imported lazily so the English path never needs flowtts installed.
         from flowtts.inference import FlowTTSPipeline, ModelConfig, AudioConfig
 
