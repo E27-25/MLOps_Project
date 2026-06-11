@@ -33,7 +33,6 @@ export LLM_MODEL="${LLM_MODEL:-/lustrefs/disk/project/zz991000-zdeva/zz991016/Ar
 # capture (saves VRAM) and a touch more memory headroom avoids OOM.
 export VLLM_ENFORCE_EAGER="${VLLM_ENFORCE_EAGER:-true}"
 export VLLM_GPU_MEM_UTIL="${VLLM_GPU_MEM_UTIL:-0.92}"
-export VLLM_MAX_MODEL_LEN="${VLLM_MAX_MODEL_LEN:-1024}"
 export VLLM_WORKER_MULTIPROC_METHOD=spawn
 export WHISPER_SIZE="${WHISPER_SIZE:-base}"
 export TTS_LANG="${TTS_LANG:-en}"

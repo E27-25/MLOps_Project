@@ -229,7 +229,8 @@ else:
         _eargs = AsyncEngineArgs(
             model=LLM_MODEL,
             dtype="float16",
-            max_model_len=int(os.getenv("VLLM_MAX_MODEL_LEN", "1024")),
+            # Thai answers tokenise to ~2x English, so give them more room
+            max_model_len=int(os.getenv("VLLM_MAX_MODEL_LEN", "2560" if TTS_LANG == "th" else "1024")),
             gpu_memory_utilization=float(os.getenv("VLLM_GPU_MEM_UTIL", "0.85")),
             enforce_eager=os.getenv("VLLM_ENFORCE_EAGER", "false").lower() == "true",
         )
@@ -483,7 +484,7 @@ def stream_expert_response(domain: str, epi_fields: dict, rag_chunks: list):
     if TTS_LANG == "th":
         messages[0]["content"] += THAI_DIRECTIVE   # make Qwen answer in Thai
 
-    max_tok = 180 if is_off_topic else 650
+    max_tok = 180 if is_off_topic else (1100 if TTS_LANG == "th" else 650)
 
     if USE_MLX:
         formatted = llm_tok.apply_chat_template(

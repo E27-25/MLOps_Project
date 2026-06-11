@@ -303,7 +303,7 @@ via vLLM, 6/6 stages green). Audio in [`backend/samples/`](backend/samples/):
 |---|---|---|
 | 🎙️ **[`input_report_en.wav`](backend/samples/input_report_en.wav)** | 13.4 s | Spoken field report — **input** |
 | 🔊 **[`output_en.wav`](backend/samples/output_en.wav)** | 52.4 s | English risk assessment — Kokoro · **7 chunks** |
-| 🔊 **[`output_th.wav`](backend/samples/output_th.wav)** | 43.0 s | Thai risk assessment — JaiTTS/F5 (cloned voice) · **6 chunks** |
+| 🔊 **[`output_th.wav`](backend/samples/output_th.wav)** | 48.9 s | Thai risk assessment — JaiTTS/F5 (cloned voice) · **7 chunks** |
 | 📝 [`output_en.txt`](backend/samples/output_en.txt) · [`output_th.txt`](backend/samples/output_th.txt) | — | Per-chunk text breakdown |
 
 > 💡 Click any `.wav` to open GitHub's built-in audio player (or download & play locally).
@@ -318,7 +318,7 @@ input  : "Three of my chickens died overnight. Their combs were blue and
 [3] Router ✓ domain = avian_flu   (confidence 1.0, cascade stage 1)
 [4] RAG    ✓ 3 domain chunks
 [5] LLM    ✓ HPAI assessment — isolate, PPE, culling, report, human safety
-[6] TTS    ✓ EN 7 chunks / 52 s   ·   TH 6 chunks / 43 s
+[6] TTS    ✓ EN 7 chunks / 52 s   ·   TH 7 chunks / 49 s
 ```
 
 **Streaming chunking works** — `iter_sentence_chunks` (EN) and `_iter_thai_chunks`

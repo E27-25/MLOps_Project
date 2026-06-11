@@ -17,7 +17,7 @@ export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1
 export USE_MLX=false USE_TRITON=false
 export LLM_MODEL=/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/Qwen3-14B
 export WHISPER_SIZE=base
-export VLLM_ENFORCE_EAGER=true VLLM_GPU_MEM_UTIL=0.92 VLLM_MAX_MODEL_LEN=1024
+export VLLM_ENFORCE_EAGER=true VLLM_GPU_MEM_UTIL=0.92
 export VLLM_WORKER_MULTIPROC_METHOD=spawn
 export JAITTS_REF_VOICE=$SLURM_SUBMIT_DIR/voices/th_ref.wav
 export THONBURIAN_TTS_DIR=/lustrefs/disk/project/zz991000-zdeva/zz991016/Arther/thonburian-tts
