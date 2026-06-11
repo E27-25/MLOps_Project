@@ -26,8 +26,8 @@ def silence_pct(data, sr, thr=0.012):
     return 100*np.mean(rms < thr)
 
 refs = [
-    ("userref_en", BACKEND/"voices"/"th_ref.wav",      BACKEND/"voices"/"th_ref.txt"),
-    ("thairef",    BACKEND/"voices"/"th_ref_thai.wav", BACKEND/"voices"/"th_ref_thai.txt"),
+    ("kokoro_en", BACKEND/"voices"/"kokoro_ref_en.wav", BACKEND/"voices"/"kokoro_ref_en.txt"),
+    ("thairef",   BACKEND/"voices"/"th_ref_thai.wav",   BACKEND/"voices"/"th_ref_thai.txt"),
 ]
 for name, rv, rt in refs:
     if not rv.exists():

@@ -22,7 +22,7 @@ nchars = len(SENT.replace(" ", ""))
 out = BACKEND / "samples" / "speedtest"; out.mkdir(parents=True, exist_ok=True)
 
 print(f"text: {nchars} Thai chars\n")
-for s in [1.0, 1.3, 1.6, 2.0]:
+for s in [0.6, 0.8, 1.0, 1.2]:
     tts.speed = s
     b64 = tts.synth_b64(SENT)
     if not b64:

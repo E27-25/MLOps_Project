@@ -105,9 +105,9 @@ class ThaiTTS:
         vocoder: str = _DEF_VOCODER,
         cfg_strength: float = 2.5,
         nfe_step: int = 32,
-        speed: float = 1.0,         # F5 clones the ref's pace; silence is trimmed
-                                    # post-synth (_tighten_wav_b64), so 1.0 with a
-                                    # normally-spoken ref ≈ natural Thai (~5 c/s).
+        speed: float = 0.8,         # paired with the shipped (brisk) Thai ref
+                                    # `voices/th_ref.wav`. F5 clones the ref's
+                                    # pace; for a slower/normal ref use ~1.0.
                                     # Tune via JAITTS_SPEED.
         silence_threshold: int = -45,
     ):

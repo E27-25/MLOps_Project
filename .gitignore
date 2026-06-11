@@ -66,7 +66,7 @@ frontend/.env.local
 triton_models/**/1/__pycache__/
 
 # Personal reference voice clips (do not publish)
-backend/voices/
+backend/voices/*
 
 # SLURM job logs
 backend/zoono-smoke-*.out
@@ -77,3 +77,6 @@ backend/prep_*.log
 backend/vllm_install.log
 backend/tfx_pin.log
 backend/samples/speedtest/
+!backend/voices/th_ref.wav
+!backend/voices/th_ref.txt
+backend/samples/compare/
