@@ -318,7 +318,7 @@ input  : "Three of my chickens died overnight. Their combs were blue and
 [3] Router ✓ domain = avian_flu   (confidence 1.0, cascade stage 1)
 [4] RAG    ✓ 3 domain chunks
 [5] LLM    ✓ HPAI assessment — isolate, PPE, culling, report, human safety
-[6] TTS    ✓ EN 7 chunks / 52 s   ·   TH 6 chunks / 130 s
+[6] TTS    ✓ EN 7 chunks / 52 s   ·   TH 6 chunks / 118 s
 ```
 
 **Streaming chunking works** — `iter_sentence_chunks` (EN) and `_iter_thai_chunks`
@@ -483,7 +483,7 @@ python3 backend/scripts/discord_logger.py   # dry-run test
 | ASR latency | ~1–2 s (Whisper base) |
 | Full pipeline | ~15–20 s end-to-end |
 | TTS first chunk | ~3–5 s after LLM starts |
-| Thai TTS (JaiTTS/F5) | flow-matching; pace via `JAITTS_SPEED` (default 1.6 ≈ natural) |
+| Thai TTS (JaiTTS/F5) | flow-matching; pace via `JAITTS_SPEED` (default 1.1 ≈ natural) |
 | Concurrent users | ×3 TTS / ×2 ASR / vLLM batched |
 | Verified | A100-40 GB · Qwen3-14B/vLLM · 6/6 stages (EN + TH) |
 
