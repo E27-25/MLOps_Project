@@ -1,0 +1,11 @@
+# ZoonoMoE response (en) — 7 chunks, 52.4s total @ 24000Hz
+# input transcript: Three of my chickens died overnight. Their combs were blue and swollen, and one was found convulsing before it died. About 15 birds are affected on a small backyard farm. This started two days ago.
+# routed domain: avian_flu (conf 1.0)
+
+[chunk 1] 12.5s | Based on the symptoms—blue and swollen combs, convulsing—and the sudden mortality in chickens, this strongly suggests Highly Pathogenic Avian Influenza, likely H5N1.
+[chunk 2]  3.4s | The signs are classic for a rapid, severe outbreak.
+[chunk 3]  6.4s | This is a HIGH risk situation because HPAI spreads quickly and can wipe out a flock in days.
+[chunk 4]  8.8s | The farmer should immediately isolate the affected birds, wear full PPE, and stop all movement of birds or equipment off the property.
+[chunk 5]  6.5s | There is no effective treatment for HPAI in poultry, so culling and biosecurity are critical.
+[chunk 6]  6.2s | This must be reported to authorities right away, as HPAI is a notifiable disease.
+[chunk 7]  8.7s | People on the farm should avoid contact with sick or dead birds, wash hands thoroughly, and wear masks to reduce any risk of exposure.

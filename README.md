@@ -286,6 +286,42 @@ train(model_dir=Path('models'), extra_data=Path('data/router_training.jsonl'))
 
 ---
 
+## 🎧 Demo Samples & Verified Run
+
+The full pipeline was validated **end-to-end on an NVIDIA A100-40 GB** (Qwen3-14B
+via vLLM, 6/6 stages green). Audio in [`backend/samples/`](backend/samples/):
+
+| File | What |
+|---|---|
+| `input_report_en.wav` · 13.4 s | Spoken field report — **input** |
+| `output_en.wav` · 52.4 s | English risk assessment — Kokoro, **7 chunks** |
+| `output_th.wav` · 208.3 s | Thai risk assessment — JaiTTS/F5, **6 chunks** |
+| `output_en.txt` / `output_th.txt` | Per-chunk text breakdown |
+
+**One run, end to end:**
+
+```
+input  : "Three of my chickens died overnight. Their combs were blue and
+          swollen, and one was found convulsing... ~15 birds affected."
+[1] ASR    ✓ transcribed (Whisper base)
+[2] NER    ✓ species/symptoms/mortality/… extracted
+[3] Router ✓ domain = avian_flu   (confidence 1.0, cascade stage 1)
+[4] RAG    ✓ 3 domain chunks
+[5] LLM    ✓ HPAI assessment — isolate, PPE, culling, report, human safety
+[6] TTS    ✓ EN 7 chunks / 52 s   ·   TH 6 chunks / 208 s
+```
+
+**Streaming chunking works** — `iter_sentence_chunks` (EN) and `_iter_thai_chunks`
+(TH) split the LLM output sentence-by-sentence and synthesise each piece as it
+streams, so audio starts before the full answer is generated. The English
+response was voiced as 7 chunks (3–13 s each); the Thai as 6.
+
+Reproduce on LANTA: `sbatch backend/make_samples.sbatch` (samples) or
+`sbatch backend/zoono_smoke.sbatch` (per-stage PASS/FAIL). JaiTTS/F5 (Thai) is
+~4× slower than Kokoro, hence the longer Thai audio.
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -437,7 +473,9 @@ python3 backend/scripts/discord_logger.py   # dry-run test
 | ASR latency | ~1–2 s (Whisper base) |
 | Full pipeline | ~15–20 s end-to-end |
 | TTS first chunk | ~3–5 s after LLM starts |
+| Thai TTS (JaiTTS/F5) | ~4× slower than Kokoro (flow-matching, `nfe_step=32`) |
 | Concurrent users | ×3 TTS / ×2 ASR / vLLM batched |
+| Verified | A100-40 GB · Qwen3-14B/vLLM · 6/6 stages (EN + TH) |
 
 ---
 
@@ -449,7 +487,7 @@ python3 backend/scripts/discord_logger.py   # dry-run test
 | LLM / NER | Qwen3 via vLLM (CUDA) or mlx-lm (Apple Silicon) |
 | Router | all-MiniLM-L6-v2 + scikit-learn MLP |
 | RAG | FAISS + sentence-transformers |
-| TTS | Kokoro-82M |
+| TTS | Kokoro-82M (English) · JaiTTS / F5-TTS (Thai, opt-in `TTS_LANG=th`) |
 | Inference Server | NVIDIA Triton 26.02 (ASR + Embedder + TTS) |
 | Backend | FastAPI + SSE streaming |
 | Frontend | Next.js 15 + Three.js / R3F |
